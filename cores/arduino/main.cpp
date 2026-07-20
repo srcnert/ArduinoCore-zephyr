@@ -25,7 +25,11 @@ void __attribute__((weak)) __loopHook(void) {
 
 int main(void) {
 #if ZARD_FIRST_SERIAL_IS_SERIALUSB
+#if !(defined(CONFIG_SHELL) && DT_HAS_CHOSEN(zephyr_shell_uart) &&                                 \
+	  DT_SAME_NODE(DT_CHOSEN(zephyr_shell_uart),                                                   \
+				   DT_PHANDLE_BY_IDX(DT_PATH(zephyr_user), cdc_acm_serial, 0)))
 	Serial.begin(115200);
+#endif
 #endif
 
 	initVariant();

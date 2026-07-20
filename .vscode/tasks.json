@@ -9,10 +9,21 @@
             "VARIANT": "nrf52840dk_nrf52840",
             "DEVICE": "NRF52840_XXAA",
             "SKETCH": "sketch/blinky",
+            "SKETCH_DEBUG": "false",
         },
         "cwd": "${workspaceFolder}"
     },
     "tasks": [
+        {
+            "label": "Loader",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Loader: Build",
+                "Loader: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
         {
             "label": "Loader: Build",
             "type": "shell",
@@ -38,6 +49,37 @@
             "problemMatcher": []
         },
         {
+            "label": "Loader: Clean",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "build",
+                "firmwares",
+                "variants/${VARIANT}/llext-edk",
+                "variants/${VARIANT}/tls-syms.S",
+                "variants/${VARIANT}/syms-dynamic.ld",
+                "variants/${VARIANT}/syms-static.ld",
+                "variants/${VARIANT}/includes.txt",
+                "variants/${VARIANT}/machine_flags.txt",
+                "variants/${VARIANT}/cflags.txt",
+                "variants/${VARIANT}/cxxflags.txt",
+                "boards.local.txt",
+                "boards.local.txt-e"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sketch",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Sketch: Clean",
+                "Sketch: Build",
+                "Sketch: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Sketch: Build",
             "type": "shell",
             "command": "arduino-cli",
@@ -45,6 +87,7 @@
                 "compile",
                 "-b", "rak:zephyr:${BOARD}",
                 "-e", "${SKETCH}",
+                "--board-options", "debug=${SKETCH_DEBUG}",
                 // "--v"
             ],
             "group": {
@@ -73,23 +116,11 @@
             "problemMatcher": []
         },
         {
-            "label": "Loader: Clean",
-            "type": "shell",
-            "command": "rm",
-            "args": [
-                "-rf",
-                "build",
-                "firmwares",
-                "variants/${VARIANT}/llext-edk",
-                "variants/${VARIANT}/tls-syms.S",
-                "variants/${VARIANT}/syms-dynamic.ld",
-                "variants/${VARIANT}/syms-static.ld",
-                "variants/${VARIANT}/includes.txt",
-                "variants/${VARIANT}/machine_flags.txt",
-                "variants/${VARIANT}/cflags.txt",
-                "variants/${VARIANT}/cxxflags.txt",
-                "boards.local.txt",
-                "boards.local.txt-e"
+            "label": "All",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader",
+                "Sketch"
             ],
             "problemMatcher": []
         },
