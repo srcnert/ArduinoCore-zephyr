@@ -36,8 +36,9 @@ manifest:
           - nanopb
           - lvgl
           - fatfs
-        path-allowlist:
-          - modules/hal/*
+          - hal_nordic
+        # path-allowlist:
+        #   - modules/hal/*
 
         # The actual list of enabled HALs is set by extra/bootstrap.sh via
         # the 'manifest.project-filter' config. Enable all Zephyr HALs with:

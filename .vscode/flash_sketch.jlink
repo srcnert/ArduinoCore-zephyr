@@ -1,0 +1,4 @@
+loadbin sketch/blinky/build/rak.zephyr.nrf52840dk/blinky.ino.elf-zsk.bin, 0x70000
+r
+g
+exit

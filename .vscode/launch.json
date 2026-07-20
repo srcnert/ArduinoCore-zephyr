@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug ARM",
+            "type": "cortex-debug",
+            "request": "launch",
+            "executable": "path/to/zephyr.elf",
+            "armToolchainPath": "${config:ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin",
+            "toolchainPrefix": "arm-zephyr-eabi",
+            "servertype": "jlink",
+            "serverpath": "${config:JLINK_PATH}/JLinkGDBServerCLExe",
+            "interface": "swd",
+            "device": "NRF52840_XXAA",
+            "showDevDebugOutput": "raw",
+            "runToEntryPoint": "main",
+            "serialNumber": "",
+            "svdFile": "",
+            "rtos": "Zephyr",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            },
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "decoders": [
+                    {
+                        "label": "",
+                        "port": 0,
+                        "type": "console",
+                        "timestamp": false
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+{
+  "configurations": [
+    {
+      "name": "Arduino Zephyr",
+      "includePath": [
+        "${workspaceFolder}/cores/arduino",
+        "${workspaceFolder}/cores/arduino/api",
+        "${workspaceFolder}/variants/nrf52840dk_nrf52840",
+        "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/zephyr/include",
+        "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/**"
+      ],
+      "forcedInclude": [
+        "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/zephyr/include/generated/zephyr/autoconf.h",
+        "${workspaceFolder}/cores/arduino/Arduino.h"
+      ],
+      "defines": [
+        "KERNEL",
+        "__ZEPHYR__=1",
+        "LL_EXTENSION_BUILD",
+        "PINCTRL_STATE_ARDUINO=PINCTRL_STATE_PRIV_START"
+      ],
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "gcc-arm",
+      "compilerPath": "${config:TOOLCHAIN_BASE}/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
+      "compilerArgs": [
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-mfpu=fpv4-sp-d16",
+        "-mfloat-abi=hard"
+      ]
+    }
+  ],
+  "version": 4
+}

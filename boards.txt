@@ -663,3 +663,33 @@ nano_connect.debug.cortex-debug.custom.request=attach
 nano_connect.debug.svd_file={runtime.platform.path}/svd/rp2040.svd
 
 ##############################################################################################################
+
+nrf52840dk.name=Nordic nRF52840 DK
+nrf52840dk.build.core=arduino
+nrf52840dk.build.crossprefix=arm-zephyr-eabi-
+nrf52840dk.build.compiler_path=/opt/nordic/ncs/toolchains/322ac893fe/opt/zephyr-sdk/arm-zephyr-eabi/bin/
+
+nrf52840dk.menu.debug.false=Standard
+nrf52840dk.menu.debug.true=Debug
+nrf52840dk.menu.debug.true.build.zsk_args.debug=-debug
+
+nrf52840dk.menu.link_mode.dynamic=Dynamic
+nrf52840dk.menu.link_mode.static=Static
+nrf52840dk.menu.link_mode.static.build.link_mode=static
+nrf52840dk.menu.link_mode.static.upload.extension=bin-zsk.bin
+
+nrf52840dk.build.zephyr_target=nrf52840dk/nrf52840
+nrf52840dk.build.zephyr_args=
+nrf52840dk.build.zephyr_hals=hal_nordic
+nrf52840dk.build.variant=nrf52840dk_nrf52840
+
+nrf52840dk.build.extra_flags=
+nrf52840dk.build.postbuild.cmd="{tools.imgtool.path}/{tools.imgtool.cmd}" exit
+nrf52840dk.build.board=NRF52840DK
+nrf52840dk.vid.0=0x1366
+nrf52840dk.pid.0=0x1015
+nrf52840dk.upload_port.0.vid=0x1366
+nrf52840dk.upload_port.0.pid=0x1015
+nrf52840dk.upload.target=nrf52840
+
+##########################################################################################

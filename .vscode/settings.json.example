@@ -1,0 +1,29 @@
+{
+  /*
+   * Copy this file to .vscode/settings.json and fill in the paths
+   * for your machine. settings.json is gitignored on purpose.
+   */
+
+  /* Environment variables for c_cpp_properties.json  */
+  "ZEPHYR_WORKSPACE": "/path/to/rak-arduino-zephyr",
+
+  /* Set TOOLCHAIN PATH according to your OS. */
+  "TOOLCHAIN_BASE": "/path/to/ncs/toolchains/<version>",
+  "JLINK_PATH":     "/path/to/SEGGER/JLink",
+  "MCUMGR_PATH":    "/path/to/go/bin",
+  "OPENOCD_PATH":   "/path/to/xpack-openocd/bin",
+
+  /* Environment variables */
+  "ZEPHYR_BASE": "${config:ZEPHYR_WORKSPACE}/zephyr",
+  "ZEPHYR_TOOLCHAIN_VARIANT": "zephyr",
+  "ZEPHYR_SDK_INSTALL_DIR": "${config:TOOLCHAIN_BASE}/opt/zephyr-sdk",
+
+  /* Terminal paths */
+  "terminal.integrated.env.windows": {
+    "PATH": "${config:ZEPHYR_WORKSPACE}/zephyr;${config:ZEPHYR_TOOLCHAIN_VARIANT};${config:ZEPHYR_SDK_INSTALL_DIR};${config:TOOLCHAIN_BASE}/opt/bin;${config:TOOLCHAIN_BASE}/opt/bin/Scripts;${config:JLINK_PATH};${config:MCUMGR_PATH};${config:OPENOCD_PATH};${env:PATH}"
+  },
+
+  "terminal.integrated.env.osx": {
+    "PATH": "${config:ZEPHYR_WORKSPACE}/zephyr:${config:ZEPHYR_TOOLCHAIN_VARIANT}:${config:ZEPHYR_SDK_INSTALL_DIR}:${config:TOOLCHAIN_BASE}/bin:${config:JLINK_PATH}:${config:MCUMGR_PATH}:${config:OPENOCD_PATH}:${env:PATH}"
+  },
+}

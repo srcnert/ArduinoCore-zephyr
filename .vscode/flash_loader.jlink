@@ -1,0 +1,4 @@
+loadfile firmwares/zephyr-nrf52840dk_nrf52840.hex
+r
+g
+exit
