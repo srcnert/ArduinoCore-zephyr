@@ -70,6 +70,18 @@ int usb_enable(usb_dc_status_callback status_cb) {
 #endif
 
 #if CONFIG_SHELL
+/*
+ * If the variant dedicates a CDC-ACM port to the shell via the
+ * zephyr,shell-uart chosen node, keep the shell there; otherwise it
+ * shares the sketch's USB serial port.
+ */
+#if DT_HAS_CHOSEN(zephyr_shell_uart) &&                                                            \
+	DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_shell_uart), zephyr_cdc_acm_uart)
+static const struct device *const shell_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
+#else
+#define shell_dev usb_dev
+#endif
+
 static int enable_shell_usb(void) {
 	bool log_backend = CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL > 0;
 	uint32_t level = (CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL > LOG_LEVEL_DBG) ?
@@ -77,7 +89,7 @@ static int enable_shell_usb(void) {
 						 CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL;
 	static const struct shell_backend_config_flags cfg_flags = SHELL_DEFAULT_BACKEND_CONFIG_FLAGS;
 
-	shell_init(shell_backend_uart_get_ptr(), usb_dev, cfg_flags, log_backend, level);
+	shell_init(shell_backend_uart_get_ptr(), shell_dev, cfg_flags, log_backend, level);
 
 	return 0;
 }
@@ -146,7 +158,7 @@ static int loader(const struct shell *sh) {
 	}
 
 #if ZARD_FIRST_SERIAL_IS_SERIALUSB
-	int debug = (!sketch_valid) || (sketch_hdr->flags & SKETCH_FLAG_DEBUG);
+	__maybe_unused int debug = (!sketch_valid) || (sketch_hdr->flags & SKETCH_FLAG_DEBUG);
 #if CONFIG_SHELL
 	if (strcmp(k_thread_name_get(k_current_get()), "main") == 0) {
 		// disables default shell on UART
@@ -155,14 +167,15 @@ static int loader(const struct shell *sh) {
 		usb_enable(NULL);
 		int dtr;
 		do {
-			// wait for the serial port to open
-			uart_line_ctrl_get(usb_dev, UART_LINE_CTRL_DTR, &dtr);
+			// wait for the shell port to open
+			uart_line_ctrl_get(shell_dev, UART_LINE_CTRL_DTR, &dtr);
 			k_sleep(K_MSEC(100));
 		} while (!dtr);
 		enable_shell_usb();
 	}
-#elif CONFIG_LOG
-#if !CONFIG_USB_DEVICE_INITIALIZE_AT_BOOT
+#endif
+#if CONFIG_LOG
+#if !CONFIG_USB_DEVICE_INITIALIZE_AT_BOOT && !CONFIG_SHELL
 	if (debug) {
 		usb_enable(NULL);
 	}
@@ -170,6 +183,10 @@ static int loader(const struct shell *sh) {
 	for (int i = 0; i < log_backend_count_get(); i++) {
 		const struct log_backend *backend;
 		backend = log_backend_get(i);
+		if (log_backend_is_active(backend)) {
+			// autostarted or already managed by the shell
+			continue;
+		}
 		log_backend_init(backend);
 		log_backend_enable(backend, backend->cb->ctx, CONFIG_LOG_DEFAULT_LEVEL);
 		if (!debug) {
@@ -182,9 +199,9 @@ static int loader(const struct shell *sh) {
 #if defined(CONFIG_BOARD_ARDUINO_UNO_Q)
 	void matrixBegin(void);
 	void matrixEnd(void);
-	void matrixPlay(uint8_t *buf, uint32_t len);
+	void matrixPlay(uint8_t * buf, uint32_t len);
 	void matrixSetGrayscaleBits(uint8_t _max);
-	void matrixGrayscaleWrite(uint8_t *buf);
+	void matrixGrayscaleWrite(uint8_t * buf);
 #include "bootanimation.h"
 
 	uint8_t *_bootanimation = (uint8_t *)bootanimation;

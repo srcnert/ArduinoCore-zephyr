@@ -19,8 +19,7 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD}",
-                // "--debug",
-                // "--v"
+                "--debug"
             ],
             "group": "build",
             "problemMatcher": ["$gcc"]
@@ -45,7 +44,8 @@
             "args": [
                 "compile",
                 "-b", "rak:zephyr:${BOARD}",
-                "-e", "${SKETCH}"
+                "-e", "${SKETCH}",
+                // "--v"
             ],
             "group": {
                 "kind": "build",
@@ -88,7 +88,8 @@
                 "variants/${VARIANT}/machine_flags.txt",
                 "variants/${VARIANT}/cflags.txt",
                 "variants/${VARIANT}/cxxflags.txt",
-                "boards.local.txt"
+                "boards.local.txt",
+                "boards.local.txt-e"
             ],
             "problemMatcher": []
         },

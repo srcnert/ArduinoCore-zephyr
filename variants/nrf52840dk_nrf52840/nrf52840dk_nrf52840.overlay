@@ -4,11 +4,48 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/{
+	chosen {
+		zephyr,console = &board_cdc_acm_logging;
+		zephyr,log-uart = &log_uarts;
+		zephyr,shell-uart = &board_cdc_acm_shell;
+	};
+
+	log_uarts: log_uarts {
+		compatible = "zephyr,log-uart";
+		uarts = <&board_cdc_acm_logging>;
+	};
+};
+
+/*
+ * USB CDC-ACM ports, in enumeration order:
+ *  1. logging: console (printk/stdout msg)+ log backend
+ *  2. sketch:  the sketch's 'Serial' (SerialUSB)
+ *  3. shell:   Zephyr shell (debug builds only, unused otherwise)
+ */
 &zephyr_udc0 {
-	board_cdc_acm_uart0: board_cdc_acm_uart0 {
+	board_cdc_acm_logging: board_cdc_acm_logging {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
 	};
+
+	board_cdc_acm_sketch: board_cdc_acm_sketch {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	board_cdc_acm_shell: board_cdc_acm_shell {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	status = "okay";
+	compatible = "nordic,nrf-usbd";
+	num-bidir-endpoints = <1>;
+	num-in-endpoints = <6>;
+	num-out-endpoints = <3>;
+	num-isoin-endpoints = <0>;
+	num-isoout-endpoints = <0>;
 };
 
 /*
@@ -31,6 +68,18 @@
 
 &uicr {
 	nfct-pins-as-gpios;
+};
+
+/* RTC backend for the Arduino RTC library */
+&rtc2 {
+	status = "okay";
+};
+
+/* The RAK4631 has no QSPI flash */
+/delete-node/ &mx25r64;
+
+&qspi {
+	status = "disabled";
 };
 
 &flash0 {
@@ -64,6 +113,7 @@
 	};
 };
 
+/* Arduino API pin mappings */
 / {
 	zephyr,user {
 		digital-pin-gpios = <&gpio0 17 0>,	/* D0 - WB_IO1 */
@@ -104,7 +154,7 @@
 				<&arduino_adc 4>,
 				<&arduino_adc 5>;
 
-		cdc-acm-serial = <&board_cdc_acm_uart0>; /* 'Serial' object is managed by SerialUSB */
+		cdc-acm-serial = <&board_cdc_acm_sketch>; /* 'Serial' object is managed by SerialUSB */
 		serials = <&uart0>; /* 'Serial1' onwards */
 	};
 };

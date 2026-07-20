@@ -5,7 +5,7 @@
             "name": "Cortex Debug ARM",
             "type": "cortex-debug",
             "request": "launch",
-            "executable": "path/to/zephyr.elf",
+            "executable": "${workspaceFolder}/build/nrf52840dk_nrf52840/zephyr/zephyr.elf",
             "armToolchainPath": "${config:ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin",
             "toolchainPrefix": "arm-zephyr-eabi",
             "servertype": "jlink",
