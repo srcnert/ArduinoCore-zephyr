@@ -501,3 +501,24 @@ EXPORT_SYMBOL(magic_location);
 FORCE_EXPORT_SYM(regulator_enable);
 FORCE_EXPORT_SYM(regulator_disable);
 #endif
+
+#if defined(CONFIG_LORAWAN)
+FORCE_EXPORT_SYM(lorawan_start);
+FORCE_EXPORT_SYM(lorawan_join);
+FORCE_EXPORT_SYM(lorawan_send);
+FORCE_EXPORT_SYM(lorawan_set_region);
+FORCE_EXPORT_SYM(lorawan_set_class);
+FORCE_EXPORT_SYM(lorawan_set_datarate);
+FORCE_EXPORT_SYM(lorawan_set_channels_mask);
+FORCE_EXPORT_SYM(lorawan_set_conf_msg_tries);
+FORCE_EXPORT_SYM(lorawan_enable_adr);
+FORCE_EXPORT_SYM(lorawan_get_min_datarate);
+FORCE_EXPORT_SYM(lorawan_get_payload_sizes);
+FORCE_EXPORT_SYM(lorawan_request_link_check);
+FORCE_EXPORT_SYM(lorawan_request_device_time);
+FORCE_EXPORT_SYM(lorawan_device_time_get);
+FORCE_EXPORT_SYM(lorawan_register_battery_level_callback);
+FORCE_EXPORT_SYM(lorawan_register_downlink_callback);
+FORCE_EXPORT_SYM(lorawan_register_dr_changed_callback);
+FORCE_EXPORT_SYM(lorawan_register_link_check_ans_callback);
+#endif

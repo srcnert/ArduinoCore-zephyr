@@ -8,8 +8,9 @@
             "BOARD": "nrf52840dk",
             "VARIANT": "nrf52840dk_nrf52840",
             "DEVICE": "NRF52840_XXAA",
-            "SKETCH": "sketch/blinky",
-            "SKETCH_DEBUG": "false",
+            "SKETCH": "sketch/lorawan",
+            "SKETCH_DEBUG": "true",
+            "SAMPLE": "samples/hello_arduino",
         },
         "cwd": "${workspaceFolder}"
     },
@@ -116,13 +117,56 @@
             "problemMatcher": []
         },
         {
-            "label": "All",
+            "label": "Sample",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Loader",
-                "Sketch"
+                "Sample: Clean",
+                "Sample: Build",
+                "Sample: Flash"
             ],
             "problemMatcher": []
         },
+        {
+            "label": "Sample: Build",
+            "type": "shell",
+            "command": "west build -p -d ${SAMPLE}/build -b nrf52840dk/nrf52840 ${SAMPLE}",
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Sample: Flash",
+            "type": "shell",
+            "command": "west flash --runner jlink -d ${SAMPLE}/build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Sample: Clean",
+            "type": "shell",
+            "command": "rm -rf ${SAMPLE}/build",
+            "problemMatcher": []
+        },
+        {
+            "label": "All",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Sketch: Clean",
+                "Loader: Build",
+                "Loader: Flash (J-Link)",
+                "Sketch: Build",
+                "Sketch: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Sketch: Clean",
+                "Sample: Clean"
+            ],
+            "problemMatcher": []
+        }
     ]
 }

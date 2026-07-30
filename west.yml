@@ -36,6 +36,7 @@ manifest:
           - nanopb
           - lvgl
           - fatfs
+          - loramac-node
           - hal_nordic
         # path-allowlist:
         #   - modules/hal/*
