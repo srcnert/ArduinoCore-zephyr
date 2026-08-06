@@ -7,6 +7,7 @@
 manifest:
   self:
     path: modules/lib/ArduinoCore-zephyr
+    west-commands: extra/rak/west-commands.yml
 
   remotes:
     - name: zephyrproject-rtos

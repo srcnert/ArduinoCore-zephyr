@@ -1,0 +1,21 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+# Single source of truth for check-tool versions: both the local
+# environment and the CI workflows install from this file.
+
+# Python Code Formatter
+black==26.*
+
+# C/C++ Code Formatter
+clang-format==19.*
+
+# .editorconfig validator
+editorconfig-checker==3.8.*
+
+# Python linter
+ruff==0.11.*
+
+# Spell checker
+codespell==2.*

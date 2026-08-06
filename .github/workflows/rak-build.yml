@@ -1,0 +1,65 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+name: RAKwireless Build
+
+on:
+  pull_request:
+    branches: [rak-main]
+  push:
+    branches: [rak-main]
+
+concurrency:
+  group: rak-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-loader:
+    name: Build loader
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: zephyrprojectrtos/ci-base:latest
+      # apt-get needs root; the image's default user is 'user'.
+      options: --user root
+    env:
+      CMAKE_PREFIX_PATH: /opt/toolchains
+      MODULE_PATH: ArduinoCore-zephyr
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true  # needed by get_core_version.sh
+          persist-credentials: false
+          path: ArduinoCore-zephyr
+
+      - name: Install jq and zstd
+        # jq is needed by extra/build.sh and extra/get_board_details.sh,
+        # zstd by tar to extract the llext-edk tarball; neither is part
+        # of the ci-base image (the full ci image has both).
+        run: apt-get update -qq && apt-get install -y -qq jq zstd
+
+      - name: Setup Zephyr project
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: ${{ env.MODULE_PATH }}
+          toolchains: arm-zephyr-eabi
+          west-project-filter: -hal_.*,+hal_nordic
+          enable-ccache: false
+
+      - name: Export Zephyr CMake package
+        # Registers Zephyr in ~/.cmake so that find_package(Zephyr) works
+        # in extra/get_variant_name.cmake (upstream's bootstrap.sh does
+        # this too; action-zephyr-setup does not).
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west zephyr-export
+
+      - name: Build loader
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          mkdir -p venv/bin && touch venv/bin/activate
+          ./extra/build.sh arduino_nano_33_ble//sense
