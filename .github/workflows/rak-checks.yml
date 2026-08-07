@@ -1,0 +1,90 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+name: RAKwireless Checks
+
+on:
+  pull_request:
+    branches: [rak-main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Run all RAKwireless controls
+    # Skipped on upstream sync PRs: upstream content follows Arduino's conventions
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ArduinoCore-zephyr
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: ArduinoCore-zephyr
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install west and check tools
+        run: |
+          pip install west -r extra/rak/requirements.txt
+          sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Register west workspace and fetch the PR base
+        id: setup
+        run: |
+          west init -l .
+          west config manifest.project-filter -- "-zephyr"
+          git fetch origin "$GITHUB_BASE_REF:$GITHUB_BASE_REF"
+
+      - name: C/C++ formatting
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-clang-format
+
+      - name: Python formatting
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-black-check
+
+      - name: Python lint
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-ruff
+
+      - name: Trailing newlines
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-newline-check
+
+      - name: Trailing whitespace
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-whitespace-check
+
+      - name: Merge conflict markers
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-conflict-check
+
+      - name: Binary files
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-binary-check
+
+      - name: EditorConfig compliance
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-editorconfig-check
+
+      - name: Spelling
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-codespell
+
+      - name: License headers
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-license-check
+
+      - name: Commit messages
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-commit-check
+
+      - name: Cppcheck static analysis
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: west rak-lint

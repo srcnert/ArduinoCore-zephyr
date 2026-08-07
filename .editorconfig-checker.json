@@ -1,0 +1,14 @@
+{
+  "Exclude": [
+    "\\.git/",
+    "\\.west/",
+    "\\.vscode/",
+    "venv/",
+    "__pycache__/",
+    "build/",
+    "distrib/",
+    "firmwares/",
+    "loader/blobs/",
+    "llext-edk/"
+  ]
+}

@@ -1,0 +1,70 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+west-commands:
+  - file: extra/rak/license_check.py
+    commands:
+      - name: rak-license-check
+        class: LicenseCheck
+        help: check license headers of changed files
+  - file: extra/rak/newline_check.py
+    commands:
+      - name: rak-newline-check
+        class: NewlineCheck
+        help: check trailing newlines
+  - file: extra/rak/black_check.py
+    commands:
+      - name: rak-black-check
+        class: BlackCheck
+        help: check Python code formatting (black)
+  - file: extra/rak/clang_format.py
+    commands:
+      - name: rak-clang-format
+        class: ClangFormat
+        help: check C/C++ formatting (clang-format)
+  - file: extra/rak/whitespace_check.py
+    commands:
+      - name: rak-whitespace-check
+        class: WhitespaceCheck
+        help: check for trailing whitespace
+  - file: extra/rak/lint.py
+    commands:
+      - name: rak-lint
+        class: Lint
+        help: run cppcheck on changed C/C++ files
+  - file: extra/rak/editorconfig_check.py
+    commands:
+      - name: rak-editorconfig-check
+        class: EditorConfigCheck
+        help: validate files against .editorconfig
+  - file: extra/rak/ruff_check.py
+    commands:
+      - name: rak-ruff
+        class: RuffCheck
+        help: lint Python sources (ruff)
+  - file: extra/rak/codespell_check.py
+    commands:
+      - name: rak-codespell
+        class: CodespellCheck
+        help: check spelling (codespell)
+  - file: extra/rak/conflict_check.py
+    commands:
+      - name: rak-conflict-check
+        class: ConflictCheck
+        help: check for merge conflict markers
+  - file: extra/rak/binary_check.py
+    commands:
+      - name: rak-binary-check
+        class: BinaryCheck
+        help: check for unexpected binary files
+  - file: extra/rak/commit_check.py
+    commands:
+      - name: rak-commit-check
+        class: CommitCheck
+        help: check commit message format
+  - file: extra/rak/checkall.py
+    commands:
+      - name: rak-checkall
+        class: CheckAll
+        help: run all rak checks in sequence

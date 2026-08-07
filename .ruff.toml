@@ -1,0 +1,11 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+# Keep in sync with black's default line length.
+line-length = 88
+
+[lint.per-file-ignores]
+# The west command scripts must adjust sys.path before importing their
+# shared rak_utils module, so imports cannot all sit at the top (E402).
+"extra/rak/*.py" = ["E402"]
