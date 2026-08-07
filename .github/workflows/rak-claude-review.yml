@@ -1,0 +1,83 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+name: RAKwireless Claude Review
+
+on:
+  pull_request:
+    branches: [rak-main]
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+# A new push to the PR cancels the still-running review of the old push
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Claude AI code review
+    # Skipped on upstream sync PRs (already reviewed by Arduino) and on PRs
+    # from external forks (secrets are not available there).
+    if: >-
+      ${{ !contains(github.event.pull_request.labels.*.name, 'upstream-sync') &&
+          github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_sticky_comment: true
+          claude_args: --allowedTools "Bash(gh pr view:*),Bash(gh pr edit:*)"
+          prompt: |
+            Review this pull request. This repository is the RAKwireless
+            downstream port of ArduinoCore-zephyr: an Arduino core running
+            on Zephyr RTOS, extended with support for RAK boards such as
+            the RAK4631 (nRF52840). Focus on:
+
+            - Zephyr API correctness: devicetree overlays and bindings,
+              Kconfig options, driver/kernel API usage, ISR- and
+              thread-safety, blocking calls in interrupt or callback
+              context, missing timeouts.
+            - Arduino API compatibility: public Arduino APIs must keep
+              their documented semantics; flag any behavioral change
+              visible to sketches.
+            - Embedded constraints: RAM/flash footprint, stack sizes,
+              dynamic allocation, busy-wait loops.
+            - Board support consistency: variant files (DTS overlay,
+              Kconfig fragments, pinmaps, board JSON) must agree with each
+              other and follow the pattern of existing boards.
+            - Downstream maintainability: edits to files inherited from
+              upstream Arduino should stay minimal and isolated so future
+              upstream merges stay conflict-free; prefer additive changes
+              in RAK-specific paths.
+            - CI workflow and Python tooling changes: watch for secrets
+              exposure and execution of untrusted PR code.
+
+            Do not comment on formatting, code style, license headers,
+            spelling or commit messages - CI (west rak-checkall) already
+            enforces those. Only raise issues you are confident about; for
+            each one give file:line, why it is a problem and a concrete
+            fix. Start with a one-paragraph summary of what the PR does.
+            If the PR looks good, say so briefly instead of inventing
+            issues.
+
+            Additionally: if the PR description is empty or contains only
+            boilerplate, write a brief description explaining what the PR
+            changes and why, and set it with `gh pr edit <number> --body`.
+            Never overwrite a description the author wrote themselves.
