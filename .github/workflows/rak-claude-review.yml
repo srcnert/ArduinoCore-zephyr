@@ -43,7 +43,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_sticky_comment: true
-          claude_args: --allowedTools "Bash(gh pr view:*),Bash(gh pr edit:*)"
+          track_progress: true
+          # --allowedTools replaces the action's defaults, so every tool
+          # Claude needs (inline comments, summary comment, gh) must be
+          # listed explicitly or the review cannot be posted
+          claude_args: >-
+            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "mcp__github_comment__update_claude_comment"
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr edit:*)"
           prompt: |
             Review this pull request. This repository is the RAKwireless
             downstream port of ArduinoCore-zephyr: an Arduino core running
@@ -71,11 +78,17 @@ jobs:
 
             Do not comment on formatting, code style, license headers,
             spelling or commit messages - CI (west rak-checkall) already
-            enforces those. Only raise issues you are confident about; for
-            each one give file:line, why it is a problem and a concrete
-            fix. Start with a one-paragraph summary of what the PR does.
-            If the PR looks good, say so briefly instead of inventing
-            issues.
+            enforces those. Only raise issues you are confident about.
+
+            Post your review like a human reviewer would:
+            - Each specific issue goes on the affected line as an inline
+              comment (use the inline comment tool), explaining why it is
+              a problem and giving a concrete fix.
+            - Post one top-level comment (use the comment tool): a short
+              paragraph on what the PR does, plus a one-line list of the
+              inline findings. If the PR looks good, say so briefly
+              instead of inventing issues.
+            Do not leave the review only in your final output.
 
             Additionally: if the PR description is empty or contains only
             boilerplate, write a brief description explaining what the PR
