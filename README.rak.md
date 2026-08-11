@@ -49,12 +49,21 @@ git push origin --tags
 Always merge (never rebase): rak-main is a published, shared branch, and
 rebasing it would rewrite history for everyone.
 
+Note that `git merge main` merges your *local* `main`, so run the
+"Sync `main` with upstream" steps above first — otherwise you merge a
+stale `main`.
+
 ```shell
 git checkout rak-main
+git pull --ff-only
 git merge main
 # resolve conflicts if any, then:
 git push origin rak-main
 ```
+
+`--ff-only` means the pull only fast-forwards: your local rak-main should
+never diverge from origin, and if it somehow has, the pull stops with an
+error instead of silently creating a merge commit.
 
 ### Update a feature branch
 
@@ -62,6 +71,8 @@ As long as you are the only one working on the branch (pushed or not), rebase
 is the cleanest way and keeps the history linear:
 
 ```shell
+git checkout rak-main
+git pull --ff-only
 git checkout dev/<feature>
 git rebase rak-main
 git push --force-with-lease
@@ -107,7 +118,7 @@ west boards | grep -i rak  # rak4631 should appear
 cd ArduinoCore-zephyr
 mkdir -p venv/bin && touch venv/bin/activate  # create an empty venv placeholder
 # use a target defined in boards.txt
-./extra/build.sh arduino_nano_33_ble//sense
+./extra/build.sh nrf52840dk
 ```
 
 ## 4. Memory Footprint Reports
@@ -166,8 +177,8 @@ The `rak:zephyr` core should now be listed.
 
 ```shell
 cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
-./extra/build.sh arduino_nano_33_ble//sense
-arduino-cli compile -b rak:zephyr:nano33ble -e sketch/blinky
+./extra/build.sh nrf52840dk/nrf52840
+arduino-cli compile -b rak:zephyr:nrf52840dk -e sketch/blinky
 ```
 
 This compiles `blinky.ino`.
@@ -212,12 +223,19 @@ west rak-commit-check       # commit message format (commits since rak-main)
 west rak-conflict-check     # no leftover merge conflict markers
 west rak-editorconfig-check # .editorconfig compliance
 west rak-license-check      # copyright + SPDX header check
-west rak-lint               # cppcheck static analysis (C/C++)
+west rak-lint -b build/<variant>  # cppcheck static analysis (C/C++)
 west rak-newline-check      # files must end with a newline
 west rak-ruff               # Python lint (ruff, .ruff.toml rules)
 west rak-whitespace-check   # no trailing whitespace
-west rak-checkall           # all of the above + loader build (--quick skips the build)
+west rak-checkall           # all of the above + loader build
+                            # (--quick skips the build and the lint)
 ```
+
+`west rak-lint` requires a build directory: it checks the files found in its
+`compile_commands.json` against the real Zephyr headers, Kconfig options and
+devicetree macros of that build. Changed files not compiled in that build
+(e.g. `cores/`, compiled per-sketch) are skipped with a warning. In
+`west rak-checkall`, the lint therefore runs right after the loader build.
 
 Every command prints a summary line
 (`Checked N file(s): X passed, Y failed - (Z ignored)`) and exits non-zero on
@@ -228,15 +246,16 @@ failure. Add `-v` to list the files being checked.
 The checks run automatically on GitHub for every pull request targeting
 `rak-main` (nothing runs on local commits):
 
-- `rak-checks` runs every `west rak-*` check as a separate step of a
-  single job, so there is one checkout, one tool install (from
-  `extra/rak/requirements.txt`) and one `west init` for all of them.
-  Steps keep running after a failure, so a single CI run reports every
-  problem at once. Adding a new check means adding one step to
-  `.github/workflows/rak-checks.yml`.
+- `rak-checks` runs every `west rak-*` check (except `rak-lint`) as a
+  separate step of a single job, so there is one checkout, one tool
+  install (from `extra/rak/requirements.txt`) and one `west init` for
+  all of them. Steps keep running after a failure, so a single CI run
+  reports every problem at once. Adding a new check means adding one
+  step to `.github/workflows/rak-checks.yml`.
 - `rak-build` (PR + push to `rak-main`) builds the loader for
-  `arduino_nano_33_ble//sense` in its own workflow: it needs the Zephyr
-  toolchain container and takes far longer than the checks.
+  target board in its own workflow: it needs the Zephyr
+  toolchain container and takes far longer than the checks. It then
+  runs `west rak-lint` against that build's real headers.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every

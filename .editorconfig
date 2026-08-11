@@ -90,6 +90,10 @@ indent_size = 8
 [*.md]
 max_line_length = off
 
+# Arduino build-system files
+[{boards.txt,boards.local.txt,platform.txt,platform.local.txt,programmers.txt}]
+max_line_length = off
+
 # Git commit messages, kept in sync with extra/rak/commit_check.py
 [COMMIT_EDITMSG]
 max_line_length = 80

@@ -9,6 +9,9 @@ Usage:
     west rak-checkall --quick                # skip the heavy build step
     west rak-checkall -v                     # pass -v to every check
     west rak-checkall -q                     # only show output of failures
+
+The cppcheck lint runs after the loader build, against that build's
+real Zephyr headers; --quick skips both (see lint.py).
 """
 
 import subprocess
@@ -20,6 +23,10 @@ from west.commands import WestCommand
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
+
+# Build target used by the full run
+LOADER_BUILD_TARGET = "nrf52840dk/nrf52840"
+LOADER_BUILD_DIR = "build/nrf52840dk_nrf52840"
 
 # (description, command, heavy) triples, run in this order from the repo
 # root. Heavy entries are skipped with --quick. West commands get -v
@@ -33,13 +40,17 @@ CHECKS = [
     ("merge conflict markers", ["west", "rak-conflict-check"], False),
     ("editorconfig compliance", ["west", "rak-editorconfig-check"], False),
     ("license headers", ["west", "rak-license-check"], False),
-    ("cppcheck static analysis", ["west", "rak-lint"], False),
     ("trailing newlines", ["west", "rak-newline-check"], False),
     ("Python lint (ruff)", ["west", "rak-ruff"], False),
     ("trailing whitespace", ["west", "rak-whitespace-check"], False),
     (
-        "loader build (nano33ble)",
-        ["./extra/build.sh", "arduino_nano_33_ble//sense"],
+        "loader build " f"({LOADER_BUILD_TARGET})",
+        ["./extra/build.sh", LOADER_BUILD_TARGET],
+        True,
+    ),
+    (
+        "cppcheck static analysis",
+        ["west", "rak-lint", "-b", LOADER_BUILD_DIR],
         True,
     ),
 ]
@@ -73,7 +84,7 @@ class CheckAll(WestCommand):
         parser.add_argument(
             "--quick",
             action="store_true",
-            help="skip heavy steps (loader build)",
+            help="skip heavy steps (loader build and cppcheck lint)",
         )
         return parser
 

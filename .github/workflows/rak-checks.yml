@@ -30,9 +30,7 @@ jobs:
           persist-credentials: false
 
       - name: Install west and check tools
-        run: |
-          pip install west -r extra/rak/requirements.txt
-          sudo apt-get update && sudo apt-get install -y cppcheck
+        run: pip install west -r extra/rak/requirements.txt
 
       - name: Register west workspace and fetch the PR base
         id: setup
@@ -84,7 +82,3 @@ jobs:
       - name: Commit messages
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: west rak-commit-check
-
-      - name: Cppcheck static analysis
-        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
-        run: west rak-lint
