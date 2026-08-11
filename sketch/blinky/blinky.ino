@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 void setup() {
 	Serial.begin(115200);
 	pinMode(LED_BUILTIN, OUTPUT);

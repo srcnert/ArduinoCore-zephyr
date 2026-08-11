@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
  * LoRaWAN class A test sketch for the RAK4631 (nrf52840dk_nrf52840 variant).
  *
  */
