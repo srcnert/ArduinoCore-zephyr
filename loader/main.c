@@ -152,7 +152,7 @@ static int loader(const struct shell *sh) {
 	}
 
 	bool sketch_valid = true;
-	struct sketch_header_v1 *sketch_hdr = (struct sketch_header_v1 *)(header + 7);
+	const struct sketch_header_v1 *sketch_hdr = (const struct sketch_header_v1 *)(header + 7);
 	if (sketch_hdr->ver != 0x1 || sketch_hdr->magic != 0x2341) {
 		printk("Failed to get valid sketch magic\n");
 		sketch_valid = false;
@@ -218,9 +218,9 @@ static int loader(const struct shell *sh) {
 #if defined(CONFIG_BOARD_ARDUINO_UNO_Q)
 	void matrixBegin(void);
 	void matrixEnd(void);
-	void matrixPlay(uint8_t * buf, uint32_t len);
+	void matrixPlay(uint8_t *buf, uint32_t len);
 	void matrixSetGrayscaleBits(uint8_t _max);
-	void matrixGrayscaleWrite(uint8_t * buf);
+	void matrixGrayscaleWrite(uint8_t *buf);
 #include "bootanimation.h"
 
 	uint8_t *_bootanimation = (uint8_t *)bootanimation;
