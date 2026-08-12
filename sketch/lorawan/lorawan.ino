@@ -13,7 +13,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/lorawan/lorawan.h>
 
-#define BLINK_PERIOD_MS          500
+#define BLINK_PERIOD_MS 500
 
 #define UPLINK_PERIOD_MS         30000
 #define LORAWAN_PORT             2
@@ -22,10 +22,11 @@
 /* Send a confirmed uplink (and a link check request) every Nth message */
 #define CONFIRMED_EVERY          5
 
-static uint8_t dev_eui[8] = {0xD8, 0x79, 0xE1, 0x9D, 0x36, 0xF2, 0x43, 0x8A};
-static uint8_t join_eui[8] = {0x1D, 0x25, 0xB0, 0xB5, 0x26, 0xCB, 0x58, 0xDE};
-static uint8_t app_key[16] = {0x2D, 0xCF, 0xEB, 0x73, 0xB8, 0x63, 0x68, 0x7C,
-							  0x5B, 0xC2, 0x7E, 0xFB, 0x11, 0x49, 0x94, 0x1A};
+/* Fill in your own OTAA credentials from your LoRaWAN network server */
+static uint8_t dev_eui[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static uint8_t join_eui[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static uint8_t app_key[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+							  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static bool joined = false;
 
@@ -44,42 +45,92 @@ static void blink_handler(struct k_work *work) {
 	k_work_schedule(&blink_work, K_MSEC(BLINK_PERIOD_MS));
 }
 
+/* Callback events */
+static struct {
+	uint8_t port;
+	uint8_t flags;
+	int16_t rssi;
+	int8_t snr;
+	uint8_t len;
+	uint8_t payload[255];
+} dl_event;
+
+static atomic_t dl_pending;
+
+static atomic_t dr_event;
+static atomic_t dr_pending;
+
+static atomic_t lc_event;
+static atomic_t lc_pending;
+
 static void downlink_cb(uint8_t port, uint8_t flags, int16_t rssi, int8_t snr, uint8_t len,
 						const uint8_t *payload) {
-	Serial.println();
-	Serial.print("Downlink: port ");
-	Serial.print(port);
-	Serial.print(", flags 0x");
-	Serial.print(flags, HEX);
-	Serial.print(", RSSI ");
-	Serial.print(rssi);
-	Serial.print(" dBm, SNR ");
-	Serial.print(snr);
-	Serial.print(" dB, ");
-	Serial.print(len);
-	Serial.println(" bytes");
-	for (uint8_t i = 0; i < len; i++) {
-		Serial.print(payload[i], HEX);
-		Serial.print(' ');
+	if (atomic_get(&dl_pending)) {
+		return; /* previous downlink not printed yet: drop this one */
 	}
+
+	dl_event.port = port;
+	dl_event.flags = flags;
+	dl_event.rssi = rssi;
+	dl_event.snr = snr;
+	dl_event.len = len;
+
 	if (len) {
-		Serial.println();
+		memcpy(dl_event.payload, payload, len);
 	}
+
+	atomic_set(&dl_pending, 1);
 }
 
 static void dr_changed_cb(enum lorawan_datarate dr) {
-	Serial.println();
-	Serial.print("ADR: datarate changed to DR");
-	Serial.println((int)dr);
+	atomic_set(&dr_event, (atomic_val_t)dr);
+	atomic_set(&dr_pending, 1);
 }
 
 static void link_check_ans_cb(uint8_t margin, uint8_t gw_count) {
-	Serial.println();
-	Serial.print("Link check: margin ");
-	Serial.print(margin);
-	Serial.print(" dB, ");
-	Serial.print(gw_count);
-	Serial.println(" gateway(s)");
+	atomic_set(&lc_event, ((atomic_val_t)margin << 8) | gw_count);
+	atomic_set(&lc_pending, 1);
+}
+
+static void print_pending_events(void) {
+	if (atomic_get(&dl_pending)) {
+		Serial.println();
+		Serial.print("Downlink: port ");
+		Serial.print(dl_event.port);
+		Serial.print(", flags 0x");
+		Serial.print(dl_event.flags, HEX);
+		Serial.print(", RSSI ");
+		Serial.print(dl_event.rssi);
+		Serial.print(" dBm, SNR ");
+		Serial.print(dl_event.snr);
+		Serial.print(" dB, ");
+		Serial.print(dl_event.len);
+		Serial.println(" bytes");
+		for (uint8_t i = 0; i < dl_event.len; i++) {
+			Serial.print(dl_event.payload[i], HEX);
+			Serial.print(' ');
+		}
+		if (dl_event.len) {
+			Serial.println();
+		}
+		atomic_set(&dl_pending, 0);
+	}
+
+	if (atomic_cas(&dr_pending, 1, 0)) {
+		Serial.println();
+		Serial.print("ADR: datarate changed to DR");
+		Serial.println((int)atomic_get(&dr_event));
+	}
+
+	if (atomic_cas(&lc_pending, 1, 0)) {
+		atomic_val_t lc = atomic_get(&lc_event);
+		Serial.println();
+		Serial.print("Link check: margin ");
+		Serial.print((uint8_t)(lc >> 8));
+		Serial.print(" dB, ");
+		Serial.print((uint8_t)(lc & 0xff));
+		Serial.println(" gateway(s)");
+	}
 }
 
 static uint8_t battery_level_cb(void) {
@@ -116,6 +167,7 @@ void setup() {
 	if (ret) {
 		Serial.print("Failed to set LoRaWAN region: ");
 		Serial.println(ret);
+		k_work_cancel(&blink_work);
 		return;
 	}
 
@@ -123,6 +175,7 @@ void setup() {
 	if (ret) {
 		Serial.print("Failed to start LoRaWAN stack: ");
 		Serial.println(ret);
+		k_work_cancel(&blink_work);
 		return;
 	}
 	Serial.println("LoRaWAN stack started (SX1262 OK)");
@@ -208,6 +261,7 @@ void loop() {
 	static uint32_t counter = 0;
 
 	if (!joined) {
+		k_work_cancel(&blink_work);
 		return;
 	}
 
@@ -251,5 +305,10 @@ void loop() {
 	}
 
 	counter++;
-	delay(UPLINK_PERIOD_MS);
+
+	/* Wait for the next uplink, draining callback events as they arrive */
+	for (uint32_t waited = 0; waited < UPLINK_PERIOD_MS; waited += 100) {
+		print_pending_events();
+		delay(100);
+	}
 }

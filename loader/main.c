@@ -170,8 +170,14 @@ static int loader(const struct shell *sh) {
 		const struct shell *default_sh = shell_backend_uart_get_ptr();
 		if (default_sh->ctx->tid) {
 			shell_uninit(default_sh, NULL);
-			while (default_sh->ctx->tid) {
+			for (int i = 0; i < 100; i++) {
+				if (default_sh->ctx->tid == NULL) {
+					break;
+				}
 				k_sleep(K_MSEC(1));
+			}
+			if (default_sh->ctx->tid) {
+				LOG_WRN("shell: uninit did not complete, continuing...");
 			}
 		}
 #endif

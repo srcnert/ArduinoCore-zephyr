@@ -77,4 +77,4 @@ jobs:
         if: ${{ github.event_name != 'pull_request' ||
           !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
         working-directory: ${{ env.MODULE_PATH }}
-        run: west rak-lint -v -b build/arduino_nano_33_ble_nrf52840_sense
+        run: west rak-lint -v -b build/nrf52840dk_nrf52840

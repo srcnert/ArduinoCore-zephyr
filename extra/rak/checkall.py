@@ -127,8 +127,8 @@ class CheckAll(WestCommand):
             failed.append(description)
 
         if failed:
-            log.die("Failed checks: " + ", ".join(failed))
-        log.inf(utils.MSG_SUCCESS)
+            log.die("\033[31m❌ Failed checks: " + ", ".join(failed) + "\033[0m")
+        log.inf(f"\033[32m🎉 All {total} checks passed!\033[0m")
 
 
 def _summary_line(output):
