@@ -78,3 +78,31 @@ jobs:
           !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
         working-directory: ${{ env.MODULE_PATH }}
         run: west rak-lint -v -b build/nrf52840dk_nrf52840
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Build host tools
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          (cd tools/zephyr-sketch-tool && go build)
+          (cd tools/gen-rodata-ld && go build)
+          (cd tools/zephyr-check-size && go build)
+
+      - name: Install arduino-cli
+        run: |
+          curl -fsSL \
+            https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh \
+            | BINDIR=/usr/local/bin sh
+
+      - name: Compile sketches
+        working-directory: ${{ env.MODULE_PATH }}
+        env:
+          ARDUINO_DIRECTORIES_USER: /tmp/arduino-user
+        run: |
+          mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
+          ln -s "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
+          west rak-sketch-check

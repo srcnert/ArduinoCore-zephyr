@@ -226,9 +226,10 @@ west rak-license-check      # copyright + SPDX header check
 west rak-lint -b build/<variant>  # cppcheck static analysis (C/C++)
 west rak-newline-check      # files must end with a newline
 west rak-ruff               # Python lint (ruff, .ruff.toml rules)
+west rak-sketch-check       # compile the sketches in sketch/ (arduino-cli)
 west rak-whitespace-check   # no trailing whitespace
 west rak-checkall           # all of the above + loader build
-                            # (--quick skips the build and the lint)
+                            # (--quick skips build, lint and sketches)
 ```
 
 `west rak-lint` requires a build directory: it checks the files found in its
@@ -236,6 +237,13 @@ west rak-checkall           # all of the above + loader build
 devicetree macros of that build. Changed files not compiled in that build
 (e.g. `cores/`, compiled per-sketch) are skipped with a warning. In
 `west rak-checkall`, the lint therefore runs right after the loader build.
+
+`west rak-sketch-check` compiles every sketch in `sketch/` with
+`arduino-cli compile -b rak:zephyr:<board>` (default board: `nrf52840dk`,
+override with `-b`). It needs the setup of section 5: a built loader
+(`./extra/build.sh <target>`), the in-repo host tools (`tools/*/go build`)
+and the `rak:zephyr` core registered with arduino-cli. In
+`west rak-checkall` it runs last, after the loader build.
 
 Every command prints a summary line
 (`Checked N file(s): X passed, Y failed - (Z ignored)`) and exits non-zero on
@@ -255,7 +263,9 @@ The checks run automatically on GitHub for every pull request targeting
 - `rak-build` (PR + push to `rak-main`) builds the loader for
   target board in its own workflow: it needs the Zephyr
   toolchain container and takes far longer than the checks. It then
-  runs `west rak-lint` against that build's real headers.
+  runs `west rak-lint` against that build's real headers, builds the
+  host tools (`tools/*`), and compiles the sketches in `sketch/`
+  against that loader with `west rak-sketch-check`.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every

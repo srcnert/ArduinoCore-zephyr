@@ -63,6 +63,11 @@ west-commands:
       - name: rak-commit-check
         class: CommitCheck
         help: check commit message format
+  - file: extra/rak/sketch_check.py
+    commands:
+      - name: rak-sketch-check
+        class: SketchCheck
+        help: compile the sketches in sketch/ (arduino-cli)
   - file: extra/rak/checkall.py
     commands:
       - name: rak-checkall
