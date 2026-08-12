@@ -1,0 +1,173 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "ZEPHYR_BASE": "${config:ZEPHYR_BASE}",
+            "ZEPHYR_TOOLCHAIN_VARIANT": "${config:ZEPHYR_TOOLCHAIN_VARIANT}",
+            "ZEPHYR_SDK_INSTALL_DIR": "${config:ZEPHYR_SDK_INSTALL_DIR}",
+            "BOARD": "nrf52840dk",
+            "VARIANT": "nrf52840dk_nrf52840",
+            "DEVICE": "NRF52840_XXAA",
+            "SKETCH": "sketch/lorawan",
+            "SKETCH_DEBUG": "true",
+            "SAMPLE": "samples/hello_arduino",
+        },
+        "cwd": "${workspaceFolder}"
+    },
+    "tasks": [
+        {
+            "label": "Loader",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Loader: Build",
+                "Loader: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Loader: Build",
+            "type": "shell",
+            "command": "extra/build.sh",
+            "args": [
+                "${BOARD}",
+                "--debug"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Loader: Flash (J-Link)",
+            "type": "shell",
+            "command": "${config:JLINK_PATH}/JLinkExe",
+            "args": [
+                "-device", "${DEVICE}",
+                "-if", "SWD",
+                "-speed", "4000",
+                "-autoconnect", "1",
+                "-CommanderScript", ".vscode/flash_loader.jlink"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Loader: Clean",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "build",
+                "firmwares",
+                "variants/${VARIANT}/llext-edk",
+                "variants/${VARIANT}/tls-syms.S",
+                "variants/${VARIANT}/syms-dynamic.ld",
+                "variants/${VARIANT}/syms-static.ld",
+                "variants/${VARIANT}/includes.txt",
+                "variants/${VARIANT}/machine_flags.txt",
+                "variants/${VARIANT}/cflags.txt",
+                "variants/${VARIANT}/cxxflags.txt",
+                "boards.local.txt",
+                "boards.local.txt-e",
+                "loader/VERSION"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sketch",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Sketch: Clean",
+                "Sketch: Build",
+                "Sketch: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sketch: Build",
+            "type": "shell",
+            "command": "arduino-cli",
+            "args": [
+                "compile",
+                "-b", "rak:zephyr:${BOARD}",
+                "-e", "${SKETCH}",
+                "--board-options", "debug=${SKETCH_DEBUG}",
+                // "--v"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Sketch: Flash (J-Link)",
+            "type": "shell",
+            "command": "${config:JLINK_PATH}/JLinkExe",
+            "args": [
+                "-device", "${DEVICE}",
+                "-if", "SWD",
+                "-speed", "4000",
+                "-autoconnect", "1",
+                "-CommanderScript", ".vscode/flash_sketch.jlink"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sketch: Clean",
+            "type": "shell",
+            "command": "rm -rf ${SKETCH}/build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Sample",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Sample: Clean",
+                "Sample: Build",
+                "Sample: Flash"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sample: Build",
+            "type": "shell",
+            "command": "west build -p -d ${SAMPLE}/build -b nrf52840dk/nrf52840 ${SAMPLE}",
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Sample: Flash",
+            "type": "shell",
+            "command": "west flash --runner jlink -d ${SAMPLE}/build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Sample: Clean",
+            "type": "shell",
+            "command": "rm -rf ${SAMPLE}/build",
+            "problemMatcher": []
+        },
+        {
+            "label": "All",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Sketch: Clean",
+                "Loader: Build",
+                "Loader: Flash (J-Link)",
+                "Sketch: Build",
+                "Sketch: Flash (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Clean",
+                "Sketch: Clean",
+                "Sample: Clean"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

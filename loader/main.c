@@ -70,6 +70,19 @@ int usb_enable(usb_dc_status_callback status_cb) {
 #endif
 
 #if CONFIG_SHELL
+/*
+ * The shell starts on the zephyr,shell-uart chosen device. If that is a
+ * CDC-ACM port, leave it there; otherwise restart the shell on the sketch's
+ * USB port once USB is enabled.
+ */
+#define SHELL_ON_CDC_PORT                                                                          \
+	(DT_HAS_CHOSEN(zephyr_shell_uart) &&                                                           \
+	 DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_shell_uart), zephyr_cdc_acm_uart))
+#if SHELL_ON_CDC_PORT
+static const struct device *const shell_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
+#else
+#define shell_dev usb_dev
+
 static int enable_shell_usb(void) {
 	bool log_backend = CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL > 0;
 	uint32_t level = (CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL > LOG_LEVEL_DBG) ?
@@ -77,10 +90,11 @@ static int enable_shell_usb(void) {
 						 CONFIG_SHELL_BACKEND_SERIAL_LOG_LEVEL;
 	static const struct shell_backend_config_flags cfg_flags = SHELL_DEFAULT_BACKEND_CONFIG_FLAGS;
 
-	shell_init(shell_backend_uart_get_ptr(), usb_dev, cfg_flags, log_backend, level);
+	shell_init(shell_backend_uart_get_ptr(), shell_dev, cfg_flags, log_backend, level);
 
 	return 0;
 }
+#endif /* SHELL_ON_CDC_PORT */
 #endif
 #endif
 
@@ -138,31 +152,55 @@ static int loader(const struct shell *sh) {
 	}
 
 	bool sketch_valid = true;
-	struct sketch_header_v1 *sketch_hdr = (struct sketch_header_v1 *)(header + 7);
+	const struct sketch_header_v1 *sketch_hdr = (const struct sketch_header_v1 *)(header + 7);
 	if (sketch_hdr->ver != 0x1 || sketch_hdr->magic != 0x2341) {
-		printk("Invalid sketch header\n");
+		printk("Failed to get valid sketch magic\n");
 		sketch_valid = false;
 		// This is not a valid sketch, but try to start a shell anyway
 	}
 
 #if ZARD_FIRST_SERIAL_IS_SERIALUSB
-	int debug = (!sketch_valid) || (sketch_hdr->flags & SKETCH_FLAG_DEBUG);
+	__maybe_unused int debug = (!sketch_valid) || (sketch_hdr->flags & SKETCH_FLAG_DEBUG);
 #if CONFIG_SHELL
+	LOG_INF("shell: device '%s'%s, debug: %d, sketch_valid: %d", shell_dev->name,
+			SHELL_ON_CDC_PORT ? "" : " (moving to the sketch USB port)", debug, sketch_valid);
 	if (strcmp(k_thread_name_get(k_current_get()), "main") == 0) {
+#if !SHELL_ON_CDC_PORT
 		// disables default shell on UART
-		shell_uninit(shell_backend_uart_get_ptr(), NULL);
-		// enables USB and starts the shell
+		const struct shell *default_sh = shell_backend_uart_get_ptr();
+		if (default_sh->ctx->tid) {
+			shell_uninit(default_sh, NULL);
+			for (int i = 0; i < 100; i++) {
+				if (default_sh->ctx->tid == NULL) {
+					break;
+				}
+				k_sleep(K_MSEC(1));
+			}
+			if (default_sh->ctx->tid) {
+				LOG_WRN("shell: uninit did not complete, continuing...");
+			}
+		}
+#endif
 		usb_enable(NULL);
-		int dtr;
-		do {
-			// wait for the serial port to open
-			uart_line_ctrl_get(usb_dev, UART_LINE_CTRL_DTR, &dtr);
-			k_sleep(K_MSEC(100));
-		} while (!dtr);
+#if SHELL_ON_CDC_PORT
+		if (debug) {
+			int dtr;
+			do {
+				// wait for the shell port to open
+				uart_line_ctrl_get(shell_dev, UART_LINE_CTRL_DTR, &dtr);
+				k_sleep(K_MSEC(100));
+			} while (!dtr);
+			LOG_INF("shell: port open (DTR set)");
+		}
+#endif
+#if !SHELL_ON_CDC_PORT
 		enable_shell_usb();
+		LOG_INF("shell: restarted on '%s'", shell_dev->name);
+#endif
 	}
-#elif CONFIG_LOG
-#if !CONFIG_USB_DEVICE_INITIALIZE_AT_BOOT
+#endif
+#if CONFIG_LOG
+#if !CONFIG_USB_DEVICE_INITIALIZE_AT_BOOT && !CONFIG_SHELL
 	if (debug) {
 		usb_enable(NULL);
 	}
@@ -170,6 +208,10 @@ static int loader(const struct shell *sh) {
 	for (int i = 0; i < log_backend_count_get(); i++) {
 		const struct log_backend *backend;
 		backend = log_backend_get(i);
+		if (log_backend_is_active(backend)) {
+			// autostarted or already managed by the shell
+			continue;
+		}
 		log_backend_init(backend);
 		log_backend_enable(backend, backend->cb->ctx, CONFIG_LOG_DEFAULT_LEVEL);
 		if (!debug) {
@@ -306,6 +348,9 @@ static int loader(const struct shell *sh) {
 		printk("Failed to find main function\n");
 		return -ENOENT;
 	}
+
+	LOG_INF("Starting llext sketch, %u bytes", (unsigned int)sketch_buf_len);
+	log_flush();
 #endif
 
 #ifdef CONFIG_USERSPACE

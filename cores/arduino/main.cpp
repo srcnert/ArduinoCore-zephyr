@@ -15,17 +15,25 @@
 void start_static_threads();
 #endif
 
-// This function will be overwriten by most variants.
+// This function will be overwritten by most variants.
 void __attribute__((weak)) initVariant(void) {
 }
 
-// This function can be overwriten by one library.
+// This function can be overwritten by one library.
 void __attribute__((weak)) __loopHook(void) {
 }
 
 int main(void) {
 #if ZARD_FIRST_SERIAL_IS_SERIALUSB
+	/*
+	 * Skip the auto-begin only when a shell runs on the sketch's own CDC
+	 * port (chosen zephyr,shell-uart == cdc-acm-serial).
+	 */
+#if !(defined(CONFIG_SHELL) && DT_HAS_CHOSEN(zephyr_shell_uart) &&                                 \
+	  DT_SAME_NODE(DT_CHOSEN(zephyr_shell_uart),                                                   \
+				   DT_PHANDLE_BY_IDX(DT_PATH(zephyr_user), cdc_acm_serial, 0)))
 	Serial.begin(115200);
+#endif
 #endif
 
 	initVariant();
@@ -40,7 +48,9 @@ int main(void) {
 		loop();
 #if 0 //(DT_NODE_HAS_PROP(DT_PATH(zephyr_user), cdc_acm) && CONFIG_USB_CDC_ACM) ||
 	  // DT_NODE_HAS_PROP(DT_PATH(zephyr_user), serials)
-    if (arduino::serialEventRun) arduino::serialEventRun();
+		if (arduino::serialEventRun) {
+			arduino::serialEventRun();
+		}
 #endif
 		__loopHook();
 	}

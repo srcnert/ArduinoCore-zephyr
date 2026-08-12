@@ -1,0 +1,4 @@
+loadbin sketch/lorawan/build/rak.zephyr.nrf52840dk/lorawan.ino.elf-zsk.bin, 0x70000
+r
+g
+exit

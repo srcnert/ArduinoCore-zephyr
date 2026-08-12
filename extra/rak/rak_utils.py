@@ -18,8 +18,8 @@ BASE_REF = "rak-main"
 # commands work regardless of the caller's working directory.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-MSG_ERR = "There is an error!"
-MSG_SUCCESS = "\033[32mCompleted successfully!\033[0m"
+MSG_ERR = "\033[31m❌ Check failed!\033[0m"
+MSG_SUCCESS = "\033[32m✅ Completed successfully!\033[0m"
 
 # Directories to skip during file traversals. Matched by name, anywhere
 # in the tree.

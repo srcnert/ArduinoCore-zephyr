@@ -37,11 +37,11 @@ jobs:
           persist-credentials: false
           path: ArduinoCore-zephyr
 
-      - name: Install jq and zstd
+      - name: Install jq, zstd and cppcheck
         # jq is needed by extra/build.sh and extra/get_board_details.sh,
-        # zstd by tar to extract the llext-edk tarball; neither is part
-        # of the ci-base image (the full ci image has both).
-        run: apt-get update -qq && apt-get install -y -qq jq zstd
+        # zstd by tar to extract the llext-edk tarball, cppcheck by
+        # 'west rak-lint'; none is part of the ci-base image.
+        run: apt-get update -qq && apt-get install -y -qq jq zstd cppcheck
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
@@ -62,4 +62,19 @@ jobs:
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
-          ./extra/build.sh arduino_nano_33_ble//sense
+          ./extra/build.sh nrf52840dk/nrf52840
+
+      - name: Fetch the PR base branch
+        # rak-lint diffs the working tree against the merge-base with
+        # rak-main, which the detached PR checkout does not have locally.
+        if: github.event_name == 'pull_request'
+        working-directory: ${{ env.MODULE_PATH }}
+        run: git fetch origin "$GITHUB_BASE_REF:$GITHUB_BASE_REF"
+
+      - name: Cppcheck static analysis
+        # Runs against the real headers of the build above. Skipped on
+        # upstream sync PRs, like the rak-checks workflow.
+        if: ${{ github.event_name != 'pull_request' ||
+          !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west rak-lint -v -b build/nrf52840dk_nrf52840

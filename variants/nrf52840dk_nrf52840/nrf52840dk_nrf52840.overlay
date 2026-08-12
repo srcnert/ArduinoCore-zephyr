@@ -4,60 +4,200 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <zephyr/dt-bindings/lora/sx126x.h>
+
+/{
+	chosen {
+		zephyr,console = &board_cdc_acm_logging;
+		zephyr,log-uart = &log_uarts;
+		zephyr,shell-uart = &board_cdc_acm_shell;
+		zephyr,code-partition = &code_partition;
+	};
+
+	aliases {
+		lora0 = &lora;
+	};
+
+	log_uarts: log_uarts {
+		compatible = "zephyr,log-uart";
+		uarts = <&board_cdc_acm_logging>;
+	};
+};
+
+/*
+ * USB CDC-ACM ports, in enumeration order:
+ *  1. logging: console (printk/stdout msg)+ log backend
+ *  2. sketch:  the sketch's 'Serial' (SerialUSB)
+ *  3. shell:   Zephyr shell (debug builds only, unused otherwise)
+ */
+&zephyr_udc0 {
+	board_cdc_acm_logging: board_cdc_acm_logging {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	board_cdc_acm_sketch: board_cdc_acm_sketch {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	board_cdc_acm_shell: board_cdc_acm_shell {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	status = "okay";
+	compatible = "nordic,nrf-usbd";
+	num-bidir-endpoints = <1>;
+	num-in-endpoints = <6>;
+	num-out-endpoints = <3>;
+	num-isoin-endpoints = <0>;
+	num-isoout-endpoints = <0>;
+};
+
+/*
+ * The RAK4631 green LED is on P1.03.
+ * (D6 in digital-pin-gpios, so LED_BUILTIN resolves to D6).
+ * The blue LED (P1.04) is D7.
+ */
+&led0 {
+	gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+};
+
+&gpio0 {
+	/delete-property/ gpio-reserved-ranges;
+};
+
+/* WB_IO5/WB_IO6 (P0.09/P0.10) are the NFC pins; use them as GPIOs. */
+&nfct {
+	status = "disabled";
+};
+
+&uicr {
+	nfct-pins-as-gpios;
+};
+
+/* RTC backend for the Arduino RTC library */
+&rtc2 {
+	status = "okay";
+};
+
+/* The RAK4631 has no QSPI flash */
+/delete-node/ &mx25r64;
+
+&qspi {
+	status = "disabled";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&i2c1 {
+	status = "disabled";
+};
+
+/* SX1262 LoRa transceiver (same wiring as the upstream Zephyr rak4631 board) */
+&spi1 {
+	compatible = "nordic,nrf-spi";
+	status = "okay";
+	cs-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+	lora: lora@0 {
+		compatible = "semtech,sx1262";
+		reg = <0>;
+		reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+		busy-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+		rx-enable-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+		dio1-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+		dio2-tx-enable;
+		dio3-tcxo-voltage = <SX126X_DIO3_TCXO_3V3>;
+		tcxo-power-startup-delay-ms = <5>;
+		spi-max-frequency = <1000000>;
+	};
+};
+
+/delete-node/ &boot_partition;
+/delete-node/ &slot0_partition;
+/delete-node/ &slot1_partition;
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		code_partition: partition@0 {
+			label = "code";
+			reg = <0x00000000 0x00070000>;
+			read-only;
+		};
+
+		user_sketch: partition@70000 {
+			label = "user";
+			reg = <0x070000 0x88000>;
+		};
+
+		/*
+		 * The flash starting at 0x000f8000 and ending at
+		 * 0x000fffff is reserved for use by the application.
+		 *
+		 * Storage partition will be used by FCB/LittleFS/NVS
+		 * if enabled.
+		 */
+		storage_partition: partition@f8000 {
+			label = "storage";
+			reg = <0x000f8000 0x00008000>;
+		};
+	};
+};
+
+/* Arduino API pin mappings */
 / {
 	zephyr,user {
-		digital-pin-gpios = <&arduino_header 6 0>,	/* Digital */
-				    <&arduino_header 7 0>,
-				    <&arduino_header 8 0>,
-				    <&arduino_header 9 0>,
-				    <&arduino_header 10 0>,
-				    <&arduino_header 11 0>,
-				    <&arduino_header 12 0>,
-				    <&arduino_header 13 0>,
-				    <&arduino_header 14 0>,
-				    <&arduino_header 15 0>,
-				    <&arduino_header 16 0>,
-				    <&arduino_header 17 0>,
-				    <&arduino_header 18 0>,
-				    <&arduino_header 19 0>,
-				    <&arduino_header 20 0>,
-				    <&arduino_header 21 0>,
-				    <&arduino_header 0 0>,	/* Analog */
-				    <&arduino_header 1 0>,
-				    <&arduino_header 2 0>,
-				    <&arduino_header 3 0>,
-				    <&arduino_header 4 0>,
-				    <&arduino_header 5 0>,
-				    <&gpio0 13 GPIO_ACTIVE_LOW>;
+		digital-pin-gpios = <&gpio0 17 0>,	/* D0 - WB_IO1 */
+				    <&gpio1 2 0>,	/* D1 - WB_IO2 */
+				    <&gpio0 21 0>,	/* D2 - WB_IO3 */
+				    <&gpio0 4 0>,	/* D3 - WB_IO4 */
+				    <&gpio0 9 0>,	/* D4 - WB_IO5 */
+				    <&gpio0 10 0>,	/* D5 - WB_IO6 */
+				    <&gpio1 3 0>,	/* D6 - green LED */
+				    <&gpio1 4 0>,	/* D7 - blue LED */
+				    <&gpio0 5 0>,	/* D8 - WB_A0 (AIN3) */
+				    <&gpio0 31 0>;	/* D9 - WB_A1 (AIN7) */
 
-		pwm-pin-gpios =     <&gpio0 13 GPIO_ACTIVE_LOW>,
-				    <&arduino_header 9 0>,
-				    <&arduino_header 11 0>,
-				    <&arduino_header 12 0>,
-				    <&arduino_header 15 0>,
-				    <&arduino_header 16 0>,
-				    <&arduino_header 17 0>;
+		pwm-pin-gpios =     <&gpio1 3 0>,	/* D6 - green LED */
+				    <&gpio1 4 0>,	/* D7 - blue LED */
+				    <&gpio0 17 0>,	/* D0 - WB_IO1 */
+				    <&gpio1 2 0>,	/* D1 - WB_IO2 */
+				    <&gpio0 21 0>,	/* D2 - WB_IO3 */
+				    <&gpio0 4 0>;	/* D3 - WB_IO4 */
 
-		adc-pin-gpios =	    <&arduino_header 0 0>,
-				    <&arduino_header 1 0>,
-				    <&arduino_header 2 0>,
-				    <&arduino_header 3 0>,
-				    <&arduino_header 4 0>,
-				    <&arduino_header 5 0>;
+		/* WisBlock analog pins */
+		adc-pin-gpios =	    <&gpio0 5 0>,	/* A0 - WB_A0 */
+				    <&gpio0 31 0>;	/* A1 - WB_A1 */
 
-		pwms =	<&pwm0 1 255 PWM_POLARITY_NORMAL>,
+		pwms =	<&pwm0 0 255 PWM_POLARITY_NORMAL>,
+			<&pwm0 1 255 PWM_POLARITY_NORMAL>,
 			<&pwm0 2 255 PWM_POLARITY_NORMAL>,
 			<&pwm0 3 255 PWM_POLARITY_NORMAL>,
 			<&pwm1 0 255 PWM_POLARITY_NORMAL>,
-			<&pwm1 1 255 PWM_POLARITY_NORMAL>,
-			<&pwm1 2 255 PWM_POLARITY_NORMAL>;
+			<&pwm1 1 255 PWM_POLARITY_NORMAL>;
 
-		io-channels =	<&arduino_adc 0>,
-				<&arduino_adc 1>,
-				<&arduino_adc 2>,
-				<&arduino_adc 3>,
-				<&arduino_adc 4>,
-				<&arduino_adc 5>;
+		io-channels =	<&adc 3>,	/* A0 - WB_A0 (AIN3) */
+				<&adc 7>;	/* A1 - WB_A1 (AIN7) */
+
+		cdc-acm-serial = <&board_cdc_acm_sketch>; /* 'Serial' object is managed by SerialUSB */
+		serials = <&uart0>, <&uart1>; /* 'Serial1' onwards */
 	};
 };
 
@@ -65,66 +205,12 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	channel@0 {
-		reg = <0>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN0>; /* P0.02 */
-		zephyr,resolution = <10>;
-	};
-
-	channel@1 {
-		reg = <1>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN1>; /* P0.03 */
-		zephyr,resolution = <10>;
-	};
-
-	channel@2 {
-		reg = <2>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN2>; /* P0.04 */
-		zephyr,resolution = <10>;
-	};
-
 	channel@3 {
 		reg = <3>;
 		zephyr,gain = "ADC_GAIN_1_6";
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN3>; /* P0.05 */
-		zephyr,resolution = <10>;
-	};
-
-	channel@4 {
-		reg = <4>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN4>; /* P0.28 */
-		zephyr,resolution = <10>;
-	};
-
-	channel@5 {
-		reg = <5>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN5>; /* P0.29 */
-		zephyr,resolution = <10>;
-	};
-
-	channel@6 {
-		reg = <6>;
-		zephyr,gain = "ADC_GAIN_1_6";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN6>; /* P0.30 */
+		zephyr,input-positive = <NRF_SAADC_AIN3>; /* P0.05 - WB_A0 */
 		zephyr,resolution = <10>;
 	};
 
@@ -133,48 +219,8 @@
 		zephyr,gain = "ADC_GAIN_1_6";
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,input-positive = <NRF_SAADC_AIN7>; /* P0.31 */
+		zephyr,input-positive = <NRF_SAADC_AIN7>; /* P0.31 - WB_A1 */
 		zephyr,resolution = <10>;
-	};
-};
-
-&pinctrl {
-	pwm0_default: pwm0_default {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 13)>, /* keep original config */
-				<NRF_PSEL(PWM_OUT1, 1, 4)>,
-				<NRF_PSEL(PWM_OUT2, 1, 6)>,
-				<NRF_PSEL(PWM_OUT3, 1, 7)>;
-				nordic,invert;
-		};
-	};
-
-	pwm0_sleep: pwm0_sleep {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 13)>, /* keep original config */
-				<NRF_PSEL(PWM_OUT1, 1, 4)>,
-				<NRF_PSEL(PWM_OUT2, 1, 6)>,
-				<NRF_PSEL(PWM_OUT3, 1, 7)>;
-				low-power-enable;
-		};
-	};
-
-	pwm1_default: pwm1_default {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 1, 11)>,
-				<NRF_PSEL(PWM_OUT1, 1, 12)>,
-				<NRF_PSEL(PWM_OUT2, 1, 13)>;
-				nordic,invert;
-		};
-	};
-
-	pwm1_sleep: pwm1_sleep {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 1, 11)>,
-				<NRF_PSEL(PWM_OUT1, 1, 12)>,
-				<NRF_PSEL(PWM_OUT2, 1, 13)>;
-				low-power-enable;
-		};
 	};
 };
 
@@ -190,4 +236,147 @@
 	pinctrl-0 = <&pwm1_default>;
 	pinctrl-1 = <&pwm1_sleep>;
 	pinctrl-names = "default", "sleep";
+};
+
+&pinctrl {
+	pwm0_default: pwm0_default {
+		group1 {
+			/* RAK4631 LEDs/IOs are active high: idle low. */
+			/delete-property/ nordic,invert;
+			psels = <NRF_PSEL(PWM_OUT0, 1, 3)>,
+				<NRF_PSEL(PWM_OUT1, 1, 4)>,
+				<NRF_PSEL(PWM_OUT2, 0, 17)>,
+				<NRF_PSEL(PWM_OUT3, 1, 2)>;
+		};
+	};
+
+	pwm0_sleep: pwm0_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 1, 3)>,
+				<NRF_PSEL(PWM_OUT1, 1, 4)>,
+				<NRF_PSEL(PWM_OUT2, 0, 17)>,
+				<NRF_PSEL(PWM_OUT3, 1, 2)>;
+				low-power-enable;
+		};
+	};
+
+	pwm1_default: pwm1_default {
+		group1 {
+			/* RAK4631 LEDs/IOs are active high: idle low. */
+			/delete-property/ nordic,invert;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 21)>,
+				<NRF_PSEL(PWM_OUT1, 0, 4)>;
+		};
+	};
+
+	pwm1_sleep: pwm1_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 21)>,
+				<NRF_PSEL(PWM_OUT1, 0, 4)>;
+				low-power-enable;
+		};
+	};
+
+	uart0_default: uart0_default {
+		/delete-node/ group2;
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 20)>,
+				<NRF_PSEL(UART_RX, 0, 19)>;
+		};
+	};
+
+	uart0_sleep: uart0_sleep {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 20)>,
+				<NRF_PSEL(UART_RX, 0, 19)>;
+			low-power-enable;
+		};
+	};
+
+	uart1_default: uart1_default {
+		/delete-node/ group2;
+		group1 {
+			/delete-property/ bias-pull-up;
+			psels = <NRF_PSEL(UART_TX, 0, 16)>,
+				<NRF_PSEL(UART_RX, 0, 15)>;
+		};
+	};
+
+	uart1_sleep: uart1_sleep {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 16)>,
+				<NRF_PSEL(UART_RX, 0, 15)>;
+			low-power-enable;
+		};
+	};
+
+	spi1_default: spi1_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+				<NRF_PSEL(SPIM_MOSI, 1, 12)>,
+				<NRF_PSEL(SPIM_MISO, 1, 13)>;
+		};
+	};
+
+	spi1_sleep: spi1_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+				<NRF_PSEL(SPIM_MOSI, 1, 12)>,
+				<NRF_PSEL(SPIM_MISO, 1, 13)>;
+			low-power-enable;
+		};
+	};
+
+	i2c0_default: i2c0_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 13)>,
+				<NRF_PSEL(TWIM_SCL, 0, 14)>;
+		};
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 13)>,
+				<NRF_PSEL(TWIM_SCL, 0, 14)>;
+			low-power-enable;
+		};
+	};
+
+	i2c1_default: i2c1_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 24)>,
+				<NRF_PSEL(TWIM_SCL, 0, 25)>;
+		};
+	};
+
+	i2c1_sleep: i2c1_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 24)>,
+				<NRF_PSEL(TWIM_SCL, 0, 25)>;
+			low-power-enable;
+		};
+	};
+
+	qspi_default: qspi_default {
+		group1 {
+			psels = <NRF_PSEL(QSPI_SCK, 0, 3)>,
+				<NRF_PSEL(QSPI_IO0, 0, 30)>,
+				<NRF_PSEL(QSPI_IO1, 0, 29)>,
+				<NRF_PSEL(QSPI_IO2, 0, 28)>,
+				<NRF_PSEL(QSPI_IO3, 0, 2)>,
+				<NRF_PSEL(QSPI_CSN, 0, 26)>;
+		};
+	};
+
+	qspi_sleep: qspi_sleep {
+		group1 {
+			psels = <NRF_PSEL(QSPI_SCK, 0, 3)>,
+				<NRF_PSEL(QSPI_IO0, 0, 30)>,
+				<NRF_PSEL(QSPI_IO1, 0, 29)>,
+				<NRF_PSEL(QSPI_IO2, 0, 28)>,
+				<NRF_PSEL(QSPI_IO3, 0, 2)>,
+				<NRF_PSEL(QSPI_CSN, 0, 26)>;
+			low-power-enable;
+		};
+	};
 };
