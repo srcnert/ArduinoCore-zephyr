@@ -167,7 +167,7 @@ void setup() {
 	if (ret) {
 		Serial.print("Failed to set LoRaWAN region: ");
 		Serial.println(ret);
-		k_work_cancel(&blink_work);
+		k_work_cancel_delayable(&blink_work);
 		return;
 	}
 
@@ -175,7 +175,7 @@ void setup() {
 	if (ret) {
 		Serial.print("Failed to start LoRaWAN stack: ");
 		Serial.println(ret);
-		k_work_cancel(&blink_work);
+		k_work_cancel_delayable(&blink_work);
 		return;
 	}
 	Serial.println("LoRaWAN stack started (SX1262 OK)");
@@ -261,7 +261,7 @@ void loop() {
 	static uint32_t counter = 0;
 
 	if (!joined) {
-		k_work_cancel(&blink_work);
+		k_work_cancel_delayable(&blink_work);
 		return;
 	}
 
