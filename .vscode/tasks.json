@@ -65,8 +65,8 @@
                 "variants/${VARIANT}/machine_flags.txt",
                 "variants/${VARIANT}/cflags.txt",
                 "variants/${VARIANT}/cxxflags.txt",
-                "boards.local.txt",
                 "boards.local.txt-e",
+                "platform.local.txt-e",
                 "loader/VERSION"
             ],
             "problemMatcher": []

@@ -37,11 +37,8 @@ jobs:
           persist-credentials: false
           path: ArduinoCore-zephyr
 
-      - name: Install jq, zstd and cppcheck
-        # jq is needed by extra/build.sh and extra/get_board_details.sh,
-        # zstd by tar to extract the llext-edk tarball, cppcheck by
-        # 'west rak-lint'; none is part of the ci-base image.
-        run: apt-get update -qq && apt-get install -y -qq jq zstd cppcheck
+      - name: Install curl, jq, zstd and cppcheck
+        run: apt-get update -qq && apt-get install -y -qq curl jq zstd cppcheck
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
@@ -50,6 +47,12 @@ jobs:
           toolchains: arm-zephyr-eabi
           west-project-filter: -hal_.*,+hal_nordic
           enable-ccache: false
+
+      - name: Fetch the Arduino API blob
+        # Upstream ships the Arduino API as a west blob since PR #568;
+        # the loader CMake configure fails without it.
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west blobs --auto-accept fetch arduino-api
 
       - name: Export Zephyr CMake package
         # Registers Zephyr in ~/.cmake so that find_package(Zephyr) works
@@ -62,7 +65,7 @@ jobs:
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
-          ./extra/build.sh nrf52840dk/nrf52840
+          ./extra/build.sh nrf52840dk
 
       - name: Fetch the PR base branch
         # rak-lint diffs the working tree against the merge-base with
@@ -78,3 +81,23 @@ jobs:
           !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
         working-directory: ${{ env.MODULE_PATH }}
         run: west rak-lint -v -b build/nrf52840dk_nrf52840
+
+      - name: Install arduino-cli
+        # Pinned (script and binary) for reproducible sketch builds.
+        run: |
+          curl -fsSL \
+            https://raw.githubusercontent.com/arduino/arduino-cli/v1.5.1/install.sh \
+            | BINDIR=/usr/local/bin sh -s 1.5.1
+          arduino-cli version
+
+      - name: Install the Arduino Zephyr toolchain
+        run: arduino-cli core install arduino:zephyr_main@0.90.0
+
+      - name: Compile sketches
+        working-directory: ${{ env.MODULE_PATH }}
+        env:
+          ARDUINO_DIRECTORIES_USER: /tmp/arduino-user
+        run: |
+          mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
+          ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
+          west rak-sketch-check

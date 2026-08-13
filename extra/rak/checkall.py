@@ -10,8 +10,8 @@ Usage:
     west rak-checkall -v                     # pass -v to every check
     west rak-checkall -q                     # only show output of failures
 
-The cppcheck lint runs after the loader build, against that build's
-real Zephyr headers; --quick skips both (see lint.py).
+The cppcheck lint and the sketch compilation run after the loader
+build, against that build's artifacts; --quick skips all three.
 """
 
 import subprocess
@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
 
 # Build target used by the full run
-LOADER_BUILD_TARGET = "nrf52840dk/nrf52840"
+LOADER_BUILD_TARGET = "nrf52840dk"
 LOADER_BUILD_DIR = "build/nrf52840dk_nrf52840"
 
 # (description, command, heavy) triples, run in this order from the repo
@@ -51,6 +51,11 @@ CHECKS = [
     (
         "cppcheck static analysis",
         ["west", "rak-lint", "-b", LOADER_BUILD_DIR],
+        True,
+    ),
+    (
+        "sketch compilation",
+        ["west", "rak-sketch-check"],
         True,
     ),
 ]
@@ -84,7 +89,7 @@ class CheckAll(WestCommand):
         parser.add_argument(
             "--quick",
             action="store_true",
-            help="skip heavy steps (loader build and cppcheck lint)",
+            help="skip heavy steps (loader build, lint, sketch compile)",
         )
         return parser
 

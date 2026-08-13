@@ -10,6 +10,7 @@
     "distrib/",
     "firmwares/",
     "loader/blobs/",
-    "llext-edk/"
+    "llext-edk/",
+    "extra/build.sh"
   ]
 }
