@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
 
 # Build target used by the full run
-LOADER_BUILD_TARGET = "nrf52840dk/nrf52840"
+LOADER_BUILD_TARGET = "nrf52840dk"
 LOADER_BUILD_DIR = "build/nrf52840dk_nrf52840"
 
 # (description, command, heavy) triples, run in this order from the repo

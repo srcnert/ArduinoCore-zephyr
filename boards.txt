@@ -669,7 +669,7 @@ nano_connect.debug.svd_file={runtime.platform.path}/svd/rp2040.svd
 nrf52840dk.name=Nordic nRF52840 DK
 nrf52840dk.build.core=arduino
 nrf52840dk.build.crossprefix=arm-zephyr-eabi-
-nrf52840dk.build.compiler_path=/opt/nordic/ncs/toolchains/322ac893fe/opt/zephyr-sdk/arm-zephyr-eabi/bin/
+nrf52840dk.build.compiler_path={runtime.tools.arm-zephyr-eabi-0.16.8.path}/bin/
 
 nrf52840dk.menu.debug.false=Standard
 nrf52840dk.menu.debug.true=Debug

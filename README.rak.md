@@ -137,7 +137,29 @@ west build -d build/nrf52840dk_nrf52840 -t ram_report > ram_report.txt
 
 ## 5. Validation on RAK4631 + RAK19007
 
-### Build the host tools
+### Install arduino-cli
+
+```shell
+brew install arduino-cli
+arduino-cli version   # verify the installation
+```
+
+### Install the Arduino Zephyr toolchain (one time)
+
+```shell
+arduino-cli core install arduino:zephyr_main@0.90.0
+```
+
+The official `arduino:zephyr_main` core supplies the cross compiler
+referenced by `boards.txt` (`arm-zephyr-eabi` 0.16.8) and the
+post-processing tools (`gen-rodata-ld`, `zephyr-sketch-tool`,
+`zephyr-check-size`) that the `{runtime.tools.*}` recipes in
+`platform.txt` resolve against.
+
+### Optional: use the in-repo host tools without installing core
+
+To test the in-repo tools instead of the released binaries, build them
+locally:
 
 ```shell
 cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
@@ -149,19 +171,24 @@ cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
 Each binary is produced inside its own tool directory
 (e.g. `tools/zephyr-sketch-tool/zephyr-sketch-tool`).
 
-### Create `platform.local.txt`
+Then create a `platform.local.txt` file containing copies of the four
+recipes from `platform.txt`, rewritten to use the in-repo binaries
+instead of `{runtime.tools.*}`.
+`arduino-cli` overrides the definitions in `platform.txt` with those in
+`platform.local.txt`.
 
-Create a `platform.local.txt` file containing copies of the four recipes from
-`platform.txt`, rewritten to use the in-repo binaries instead of
-`{runtime.tools.*}` (the downloaded package path). `arduino-cli` overrides the
-definitions in `platform.txt` with those in `platform.local.txt`.
+### Optional: use a local compiler via `boards.local.txt`
 
-### Install arduino-cli
+`./extra/build.sh` generates `boards.local.txt` (gitignored), which
+`arduino-cli` merges over `boards.txt`. To compile with a locally
+installed toolchain instead of the core-installed one, add:
 
-```shell
-brew install arduino-cli
-arduino-cli version   # verify the installation
+```text
+<board>.build.compiler_path=/path/to/zephyr-sdk/arm-zephyr-eabi/bin/
 ```
+
+As with `platform.local.txt`, this override means local builds no
+longer match CI.
 
 ### Register the core with arduino-cli (one time)
 
@@ -177,7 +204,7 @@ The `rak:zephyr` core should now be listed.
 
 ```shell
 cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
-./extra/build.sh nrf52840dk/nrf52840
+./extra/build.sh nrf52840dk
 arduino-cli compile -b rak:zephyr:nrf52840dk -e sketch/blinky
 ```
 
@@ -263,9 +290,10 @@ The checks run automatically on GitHub for every pull request targeting
 - `rak-build` (PR + push to `rak-main`) builds the loader for
   target board in its own workflow: it needs the Zephyr
   toolchain container and takes far longer than the checks. It then
-  runs `west rak-lint` against that build's real headers, builds the
-  host tools (`tools/*`), and compiles the sketches in `sketch/`
-  against that loader with `west rak-sketch-check`.
+  runs `west rak-lint` against that build's real headers, installs
+  arduino-cli and the pinned `arduino:zephyr_main` core, and compiles
+  the sketches in `sketch/` against that loader with
+  `west rak-sketch-check`.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every
