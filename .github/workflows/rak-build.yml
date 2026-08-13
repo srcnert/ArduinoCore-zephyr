@@ -51,6 +51,12 @@ jobs:
           west-project-filter: -hal_.*,+hal_nordic
           enable-ccache: false
 
+      - name: Fetch the Arduino API blob
+        # Upstream ships the Arduino API as a west blob since PR #568;
+        # the loader CMake configure fails without it.
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west blobs --auto-accept fetch arduino-api
+
       - name: Export Zephyr CMake package
         # Registers Zephyr in ~/.cmake so that find_package(Zephyr) works
         # in extra/get_variant_name.cmake (upstream's bootstrap.sh does
