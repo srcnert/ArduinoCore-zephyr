@@ -24,7 +24,7 @@ import rak_utils as utils
 
 IGNORE_SUFFIXES = {".md", ".rst", ".txt", ".pde", ".json"}
 # Never checked, matched by exact file name (dotfiles have no suffix).
-IGNORE_NAMES = {".gitignore"}
+IGNORE_NAMES = {".gitignore", "VERSION"}
 # Checked even though their suffix is ignored.
 SOURCE_NAMES = {"CMakeLists.txt"}
 

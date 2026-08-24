@@ -38,11 +38,11 @@ Tags must be synced too: GitHub does not copy tags into a fork, and
 — without tags the rak-build CI job fails.
 
 ```shell
-git fetch upstream --tags
+git fetch upstream --tags --force
 git checkout main
 git merge --ff-only upstream/main
 git push origin main
-git push origin --tags
+git push origin --tags --force
 ```
 
 ### Bring upstream changes into rak-main
@@ -110,11 +110,26 @@ cd ..            # workspace root: ~/rak-arduino-zephyr
 west update
 ```
 
+### Fetch the Arduino API blob
+
+The Arduino API sources are not a west project: upstream ships them as a
+Zephyr *blob* (a downloaded archive) declared in this repo's
+`zephyr/module.yml`, which is also what gives the module its name,
+`arduino-api`. Without the blob every build stops at CMake configure time
+with `Arduino API <version> must be downloaded with 'west blobs fetch'`.
+
+```shell
+west blobs fetch arduino-api
+```
+
+The blob lands in the repo itself, next to its `zephyr/module.yml`.
+
 ### Verification (from the workspace root)
 
 ```shell
 west list | head           # zephyr + modules should be listed
 west boards | grep -i rak  # rak4631 should appear
+west blobs list arduino-api
 cd ArduinoCore-zephyr
 mkdir -p venv/bin && touch venv/bin/activate  # create an empty venv placeholder
 # use a target defined in boards.txt
@@ -213,14 +228,6 @@ This compiles `blinky.ino`.
 ## 6. Building Zephyr Samples
 
 ```shell
-# One-time workspace setup: the core's CMake expects ArduinoCore-API at the
-# workspace root, but west checks it out under modules/lib/
-ln -s modules/lib/ArduinoCore-API <workspace-root>/ArduinoCore-API
-```
-
-After that, a sample can be built from the ArduinoCore-zephyr directory:
-
-```shell
 west build -p -d samples/hello_arduino/build -b nrf52840dk/nrf52840 samples/hello_arduino
 ```
 
@@ -253,10 +260,11 @@ west rak-license-check      # copyright + SPDX header check
 west rak-lint -b build/<variant>  # cppcheck static analysis (C/C++)
 west rak-newline-check      # files must end with a newline
 west rak-ruff               # Python lint (ruff, .ruff.toml rules)
+west rak-sample-check       # build the samples in samples/ (west build)
 west rak-sketch-check       # compile the sketches in sketch/ (arduino-cli)
 west rak-whitespace-check   # no trailing whitespace
 west rak-checkall           # all of the above + loader build
-                            # (--quick skips build, lint and sketches)
+                            # (--quick skips build, lint, sketches, samples)
 ```
 
 `west rak-lint` requires a build directory: it checks the files found in its
@@ -290,7 +298,8 @@ The checks run automatically on GitHub for every pull request targeting
 - `rak-build` (PR + push to `rak-main`) builds the loader for
   target board in its own workflow: it needs the Zephyr
   toolchain container and takes far longer than the checks. It then
-  runs `west rak-lint` against that build's real headers, installs
+  builds the Zephyr samples with `west rak-sample-check`, runs
+  `west rak-lint` against the loader build's real headers, installs
   arduino-cli and the pinned `arduino:zephyr_main` core, and compiles
   the sketches in `sketch/` against that loader with
   `west rak-sketch-check`.

@@ -67,6 +67,11 @@ jobs:
           mkdir -p venv/bin && touch venv/bin/activate
           ./extra/build.sh nrf52840dk
 
+      - name: Build samples
+        # Standalone Zephyr build of the samples
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west rak-sample-check
+
       - name: Fetch the PR base branch
         # rak-lint diffs the working tree against the merge-base with
         # rak-main, which the detached PR checkout does not have locally.

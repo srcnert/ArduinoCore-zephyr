@@ -11,7 +11,9 @@ Usage:
     west rak-checkall -q                     # only show output of failures
 
 The cppcheck lint and the sketch compilation run after the loader
-build, against that build's artifacts; --quick skips all three.
+build, against that build's artifacts. The sample build is independent
+of the loader but just as heavy, so it runs last; --quick skips all
+four.
 """
 
 import subprocess
@@ -58,6 +60,11 @@ CHECKS = [
         ["west", "rak-sketch-check"],
         True,
     ),
+    (
+        "sample build",
+        ["west", "rak-sample-check"],
+        True,
+    ),
 ]
 
 
@@ -89,7 +96,7 @@ class CheckAll(WestCommand):
         parser.add_argument(
             "--quick",
             action="store_true",
-            help="skip heavy steps (loader build, lint, sketch compile)",
+            help="skip heavy steps (loader build, lint, sketch and sample build)",
         )
         return parser
 
