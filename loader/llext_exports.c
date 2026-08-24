@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <zephyr/drivers/pinctrl.h>
 #include <zephyr/device.h>
+#include <zephyr/posix/unistd.h>
 #if defined(CONFIG_MBEDTLS)
 #include <mbedtls/memory_buffer_alloc.h>
 #include <mbedtls/debug.h>
@@ -150,11 +151,6 @@ EXPORT_SYMBOL(pinctrl_lookup_state);
 EXPORT_SYMBOL(pinctrl_configure_pins);
 #endif
 
-#if defined(CONFIG_USB_DEVICE_STACK)
-EXPORT_SYMBOL(usb_enable);
-EXPORT_SYMBOL(usb_disable);
-#endif
-
 #if CONFIG_LOG
 EXPORT_SYMBOL(z_log_msg_runtime_vcreate);
 FORCE_EXPORT_SYM(log_const_sketch)
@@ -252,6 +248,8 @@ FORCE_EXPORT_SYM(bt_ctlr_set_public_addr);
 #if defined(CONFIG_STACK_CANARIES)
 FORCE_EXPORT_SYM(__stack_chk_guard);
 FORCE_EXPORT_SYM(__stack_chk_fail);
+// Required by  __stack_chk_init()
+EXPORT_LIBC_SYM(getentropy);
 #endif
 
 #if defined(CONFIG_VIDEO)

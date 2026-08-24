@@ -24,7 +24,7 @@ void __attribute__((weak)) __loopHook(void) {
 }
 
 int main(void) {
-#if ZARD_FIRST_SERIAL_IS_SERIALUSB
+#if ZARD_BOARD_HAS_SERIALUSB
 	/*
 	 * Skip the auto-begin only when a shell runs on the sketch's own CDC
 	 * port (chosen zephyr,shell-uart == cdc-acm-serial).
@@ -32,7 +32,7 @@ int main(void) {
 #if !(defined(CONFIG_SHELL) && DT_HAS_CHOSEN(zephyr_shell_uart) &&                                 \
 	  DT_SAME_NODE(DT_CHOSEN(zephyr_shell_uart),                                                   \
 				   DT_PHANDLE_BY_IDX(DT_PATH(zephyr_user), cdc_acm_serial, 0)))
-	Serial.begin(115200);
+	SerialUSB.begin(115200);
 #endif
 #endif
 
