@@ -68,6 +68,11 @@ west-commands:
       - name: rak-sketch-check
         class: SketchCheck
         help: compile the sketches in sketch/ (arduino-cli)
+  - file: extra/rak/sample_check.py
+    commands:
+      - name: rak-sample-check
+        class: SampleCheck
+        help: build the samples in samples/ (west build)
   - file: extra/rak/checkall.py
     commands:
       - name: rak-checkall

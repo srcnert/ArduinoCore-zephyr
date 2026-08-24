@@ -6,7 +6,7 @@
             "type": "cortex-debug",
             "request": "launch",
             "executable": "${workspaceFolder}/build/nrf52840dk_nrf52840/zephyr/zephyr.elf",
-            "armToolchainPath": "${config:ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin",
+            "armToolchainPath": "${config:ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin",
             "toolchainPrefix": "arm-zephyr-eabi",
             "servertype": "jlink",
             "serverpath": "${config:JLINK_PATH}/JLinkGDBServerCLExe",
