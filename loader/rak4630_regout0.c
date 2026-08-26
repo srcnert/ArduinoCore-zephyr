@@ -19,7 +19,7 @@
 
 #include <zephyr/init.h>
 
-#if defined(CONFIG_BOARD_NRF52840DK)
+#if defined(CONFIG_BOARD_NRF52840DK) || defined(CONFIG_BOARD_RAK4631_NRF52840)
 #include <cmsis_core.h>
 #include <hal/nrf_power.h>
 
@@ -47,4 +47,4 @@ static int rak4630_vddh_regout0_3v3(void) {
 }
 
 SYS_INIT(rak4630_vddh_regout0_3v3, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
-#endif /* CONFIG_BOARD_NRF52840DK */
+#endif /* CONFIG_BOARD_NRF52840DK || CONFIG_BOARD_RAK4631_NRF52840 */

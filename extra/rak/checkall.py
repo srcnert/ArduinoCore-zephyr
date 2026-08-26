@@ -7,6 +7,7 @@
 Usage:
     west rak-checkall                        # all checks + loader build
     west rak-checkall --quick                # skip the heavy build step
+    west rak-checkall -b nrf52840dk          # build for another board
     west rak-checkall -v                     # pass -v to every check
     west rak-checkall -q                     # only show output of failures
 
@@ -14,6 +15,9 @@ The cppcheck lint and the sketch compilation run after the loader
 build, against that build's artifacts. The sample build is independent
 of the loader but just as heavy, so it runs last; --quick skips all
 four.
+
+Those four steps build one board at a time, selected with -b; every
+board defined in boards.txt works.
 """
 
 import subprocess
@@ -26,46 +30,44 @@ from west.commands import WestCommand
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
 
-# Build target used by the full run
-LOADER_BUILD_TARGET = "nrf52840dk"
-LOADER_BUILD_DIR = "build/nrf52840dk_nrf52840"
+# Board built by the heavy steps unless -b says otherwise
+DEFAULT_BOARD = "rak4631"
 
-# (description, command, heavy) triples, run in this order from the repo
-# root. Heavy entries are skipped with --quick. West commands get -v
-# appended when running verbose.
+# (description, command) pairs, run in this order from the repo root.
+# West commands get -v appended when running verbose.
 CHECKS = [
-    ("binary files", ["west", "rak-binary-check"], False),
-    ("Python formatting", ["west", "rak-black-check"], False),
-    ("C/C++ formatting", ["west", "rak-clang-format"], False),
-    ("spelling (codespell)", ["west", "rak-codespell"], False),
-    ("commit messages", ["west", "rak-commit-check"], False),
-    ("merge conflict markers", ["west", "rak-conflict-check"], False),
-    ("editorconfig compliance", ["west", "rak-editorconfig-check"], False),
-    ("license headers", ["west", "rak-license-check"], False),
-    ("trailing newlines", ["west", "rak-newline-check"], False),
-    ("Python lint (ruff)", ["west", "rak-ruff"], False),
-    ("trailing whitespace", ["west", "rak-whitespace-check"], False),
-    (
-        "loader build " f"({LOADER_BUILD_TARGET})",
-        ["./extra/build.sh", LOADER_BUILD_TARGET],
-        True,
-    ),
-    (
-        "cppcheck static analysis",
-        ["west", "rak-lint", "-b", LOADER_BUILD_DIR],
-        True,
-    ),
-    (
-        "sketch compilation",
-        ["west", "rak-sketch-check"],
-        True,
-    ),
-    (
-        "sample build",
-        ["west", "rak-sample-check"],
-        True,
-    ),
+    ("binary files", ["west", "rak-binary-check"]),
+    ("Python formatting", ["west", "rak-black-check"]),
+    ("C/C++ formatting", ["west", "rak-clang-format"]),
+    ("spelling (codespell)", ["west", "rak-codespell"]),
+    ("commit messages", ["west", "rak-commit-check"]),
+    ("merge conflict markers", ["west", "rak-conflict-check"]),
+    ("editorconfig compliance", ["west", "rak-editorconfig-check"]),
+    ("license headers", ["west", "rak-license-check"]),
+    ("trailing newlines", ["west", "rak-newline-check"]),
+    ("Python lint (ruff)", ["west", "rak-ruff"]),
+    ("trailing whitespace", ["west", "rak-whitespace-check"]),
 ]
+
+
+def _build_checks(board):
+    """The heavy steps, in the order they must run, for one board.
+
+    The variant (build directory) and the Zephyr board target come from
+    the board's definition in boards.txt, so -b takes the same name as
+    ./extra/build.sh and arduino-cli.
+    """
+    variant = utils.board_property(board, "build.variant")
+    target = utils.board_property(board, "build.zephyr_target")
+    if not variant or not target:
+        log.die(f"Board '{board}' not found in boards.txt / boards.local.txt")
+
+    return [
+        (f"loader build ({board})", ["./extra/build.sh", board]),
+        ("cppcheck static analysis", ["west", "rak-lint", "-b", f"build/{variant}"]),
+        (f"sketch compilation ({board})", ["west", "rak-sketch-check", "-b", board]),
+        (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
+    ]
 
 
 class CheckAll(WestCommand):
@@ -98,18 +100,26 @@ class CheckAll(WestCommand):
             action="store_true",
             help="skip heavy steps (loader build, lint, sketch and sample build)",
         )
+        parser.add_argument(
+            "-b",
+            "--board",
+            default=DEFAULT_BOARD,
+            metavar="BOARD",
+            help="board the heavy steps build for, as named in boards.txt "
+            f"(default: {DEFAULT_BOARD})",
+        )
         return parser
 
     def do_run(self, args, unknown_args):
-        checks = CHECKS
-        if args.quick:
-            checks = [c for c in CHECKS if not c[2]]
+        checks = list(CHECKS)
+        if not args.quick:
+            checks += _build_checks(args.board)
 
         root = utils.REPO_ROOT
         failed = []
         total = len(checks)
 
-        for idx, (description, base_cmd, _) in enumerate(checks, 1):
+        for idx, (description, base_cmd) in enumerate(checks, 1):
             tag = f"[{idx}/{total}]"
             cmd = list(base_cmd)
             if args.verbose and cmd[0] == "west":

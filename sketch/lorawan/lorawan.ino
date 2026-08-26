@@ -5,7 +5,7 @@
  */
 
 /*
- * LoRaWAN class A test sketch for the RAK4631 (nrf52840dk_nrf52840 variant).
+ * LoRaWAN class A test sketch for the RAK4631.
  *
  */
 

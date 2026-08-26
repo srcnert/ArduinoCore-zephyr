@@ -133,21 +133,21 @@ west blobs list arduino-api
 cd ArduinoCore-zephyr
 mkdir -p venv/bin && touch venv/bin/activate  # create an empty venv placeholder
 # use a target defined in boards.txt
-./extra/build.sh nrf52840dk
+./extra/build.sh rak4631
 ```
 
 ## 4. Memory Footprint Reports
 
 ```shell
-west build -d build/nrf52840dk_nrf52840 -t footprint
-west build -d build/nrf52840dk_nrf52840 -t ram_report
-west build -d build/nrf52840dk_nrf52840 -t rom_report
+west build -d build/rak4631_nrf52840 -t footprint
+west build -d build/rak4631_nrf52840 -t ram_report
+west build -d build/rak4631_nrf52840 -t rom_report
 ```
 
 To save a report to a file:
 
 ```shell
-west build -d build/nrf52840dk_nrf52840 -t ram_report > ram_report.txt
+west build -d build/rak4631_nrf52840 -t ram_report > ram_report.txt
 ```
 
 ## 5. Validation on RAK4631 + RAK19007
@@ -219,8 +219,8 @@ The `rak:zephyr` core should now be listed.
 
 ```shell
 cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
-./extra/build.sh nrf52840dk
-arduino-cli compile -b rak:zephyr:nrf52840dk -e sketch/blinky
+./extra/build.sh rak4631
+arduino-cli compile -b rak:zephyr:rak4631 -e sketch/blinky
 ```
 
 This compiles `blinky.ino`.
@@ -228,7 +228,7 @@ This compiles `blinky.ino`.
 ## 6. Building Zephyr Samples
 
 ```shell
-west build -p -d samples/hello_arduino/build -b nrf52840dk/nrf52840 samples/hello_arduino
+west build -p -d samples/hello_arduino/build -b rak4631/nrf52840 samples/hello_arduino
 ```
 
 ## 7. How to use CI tools
@@ -274,7 +274,7 @@ devicetree macros of that build. Changed files not compiled in that build
 `west rak-checkall`, the lint therefore runs right after the loader build.
 
 `west rak-sketch-check` compiles every sketch in `sketch/` with
-`arduino-cli compile -b rak:zephyr:<board>` (default board: `nrf52840dk`,
+`arduino-cli compile -b rak:zephyr:<board>` (default board: `rak4631`,
 override with `-b`). It needs the setup of section 5: a built loader
 (`./extra/build.sh <target>`), the in-repo host tools (`tools/*/go build`)
 and the `rak:zephyr` core registered with arduino-cli. In

@@ -7,10 +7,14 @@
         "${workspaceFolder}/cores/arduino/api",
         "${workspaceFolder}/variants/nrf52840dk_nrf52840",
         "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/zephyr/include",
-        "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/**"
+        "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/**",
+        "${workspaceFolder}/variants/rak4631_nrf52840",
+        "${workspaceFolder}/variants/rak4631_nrf52840/llext-edk/include/zephyr/include",
+        "${workspaceFolder}/variants/rak4631_nrf52840/llext-edk/include/**"
       ],
       "forcedInclude": [
         "${workspaceFolder}/variants/nrf52840dk_nrf52840/llext-edk/include/zephyr/include/generated/zephyr/autoconf.h",
+        "${workspaceFolder}/variants/rak4631_nrf52840/llext-edk/include/zephyr/include/generated/zephyr/autoconf.h",
         "${workspaceFolder}/cores/arduino/Arduino.h"
       ],
       "defines": [
