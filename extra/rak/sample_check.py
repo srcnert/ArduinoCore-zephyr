@@ -5,12 +5,14 @@
 """Build the Zephyr samples in samples/ with west build.
 
 Usage:
-    west rak-sample-check                          # build the default sample
-    west rak-sample-check -b nrf52840dk/nrf52840   # pick another board
+    west rak-sample-check                          # build the default samples
+    west rak-sample-check -b rak4631/nrf52840      # pick another board
     west rak-sample-check -s samples/fade          # build another sample
 
 The sample supplies the variant overlay via its CMakeLists.txt and the Kconfig
-fragment via <sample>/boards/<board>.conf.
+fragment via <sample>/boards/<board>.conf. DEFAULT_SAMPLES therefore lists the
+samples that ship such a fragment for the RAK boards; it is the single source
+of truth for what rak-checkall and the rak-build workflow build.
 """
 
 import subprocess
@@ -22,8 +24,8 @@ from west import log
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
 
-DEFAULT_BOARD = "nrf52840dk/nrf52840"
-DEFAULT_SAMPLES = ["samples/hello_arduino"]
+DEFAULT_BOARD = "rak4631/nrf52840"
+DEFAULT_SAMPLES = ["samples/blinky_arduino", "samples/hello_arduino"]
 
 
 class SampleCheck(utils.CheckCommand):

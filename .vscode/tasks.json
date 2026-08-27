@@ -11,7 +11,7 @@
             "DEVICE": "NRF52840_XXAA",
             "SKETCH": "sketch/lorawan",
             "SKETCH_DEBUG": "false",
-            "SAMPLE": "samples/hello_arduino",
+            "SAMPLE": "samples/blinky_arduino",
         },
         "cwd": "${workspaceFolder}"
     },
@@ -162,11 +162,13 @@
         },
         {
             "label": "Clean",
+            "type": "shell",
+
             "dependsOrder": "sequence",
+            "command": "find samples sketch -mindepth 2 -maxdepth 2 -type d -name build -exec rm -rf {} +",
+
             "dependsOn": [
-                "Loader: Clean",
-                "Sketch: Clean",
-                "Sample: Clean"
+                "Loader: Clean"
             ],
             "problemMatcher": []
         }

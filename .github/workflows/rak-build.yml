@@ -69,11 +69,13 @@ jobs:
           ./extra/build.sh rak4631
 
       - name: Build samples
-        # Standalone Zephyr build of the samples
+        # Standalone Zephyr build of the samples. The sample list comes
+        # from DEFAULT_SAMPLES in extra/rak/sample_check.py, so this stays
+        # in sync with what 'west rak-checkall' builds locally.
         working-directory: ${{ env.MODULE_PATH }}
         run: |
-          west rak-sample-check -b nrf52840dk_nrf52840 -s samples/hello_arduino
-          west rak-sample-check -b rak4631_nrf52840 -s samples/hello_arduino
+          west rak-sample-check -b nrf52840dk/nrf52840
+          west rak-sample-check -b rak4631/nrf52840
 
       - name: Fetch the PR base branch
         # rak-lint diffs the working tree against the merge-base with
