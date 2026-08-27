@@ -695,3 +695,33 @@ nrf52840dk.upload_port.0.pid=0x1015
 nrf52840dk.upload.target=nrf52840
 
 ##########################################################################################
+
+rak4631.name=RAKwireless RAK4631
+rak4631.build.core=arduino
+rak4631.build.crossprefix=arm-zephyr-eabi-
+rak4631.build.compiler_path={runtime.tools.arm-zephyr-eabi-0.16.8.path}/bin/
+
+rak4631.menu.debug.false=Standard
+rak4631.menu.debug.true=Debug
+rak4631.menu.debug.true.build.zsk_args.debug=-debug
+
+rak4631.menu.link_mode.dynamic=Dynamic
+rak4631.menu.link_mode.static=Static
+rak4631.menu.link_mode.static.build.link_mode=static
+rak4631.menu.link_mode.static.upload.extension=bin-zsk.bin
+
+rak4631.build.zephyr_target=rak4631/nrf52840
+rak4631.build.zephyr_args=
+rak4631.build.zephyr_hals=hal_nordic
+rak4631.build.variant=rak4631_nrf52840
+
+rak4631.build.extra_flags=
+rak4631.build.postbuild.cmd="{tools.imgtool.path}/{tools.imgtool.cmd}" exit
+rak4631.build.board=RAK4631
+rak4631.vid.0=0x1915
+rak4631.pid.0=0x5300
+rak4631.upload_port.0.vid=0x1915
+rak4631.upload_port.0.pid=0x5300
+rak4631.upload.target=nrf52840
+
+##########################################################################################

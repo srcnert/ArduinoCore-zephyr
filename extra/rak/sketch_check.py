@@ -5,9 +5,9 @@
 """Compile every sketch in sketch/ with arduino-cli.
 
 Usage:
-    west rak-sketch-check                    # compile all sketches
-    west rak-sketch-check -v                 # verbose compiler output
-    west rak-sketch-check -b nrf52840dk      # pick another board
+    west rak-sketch-check                 # compile all sketches
+    west rak-sketch-check -v              # verbose compiler output
+    west rak-sketch-check -b rak4631      # pick another board
 
 Each direct subdirectory of sketch/ that contains a .ino file is
 compiled with 'arduino-cli compile -b rak:zephyr:<board>'.
@@ -22,11 +22,9 @@ from west import log
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rak_utils as utils
 
-DEFAULT_BOARD = "nrf52840dk"
+DEFAULT_BOARD = "rak4631"
 
 SKETCH_DIR = utils.REPO_ROOT / "sketch"
-BOARDS_TXT = utils.REPO_ROOT / "boards.txt"
-BOARDS_LOCAL = utils.REPO_ROOT / "boards.local.txt"
 
 
 class SketchCheck(utils.CheckCommand):
@@ -49,7 +47,10 @@ class SketchCheck(utils.CheckCommand):
         return parser
 
     def do_run(self, args, unknown_args):
-        variant = _board_variant(args.board)
+        variant = utils.board_property(args.board, "build.variant")
+        if not variant:
+            log.die(f"Board '{args.board}' not found in boards.txt / boards.local.txt")
+
         edk = utils.REPO_ROOT / "variants" / variant / "llext-edk"
         if not edk.is_dir():
             log.die(
@@ -96,15 +97,3 @@ def _find_sketches():
     return sorted(
         p for p in SKETCH_DIR.iterdir() if p.is_dir() and any(p.glob("*.ino"))
     )
-
-
-def _board_variant(board):
-    """Map a board name to its variant via boards.local.txt."""
-    key = f"{board}.build.variant="
-    for file in (BOARDS_LOCAL, BOARDS_TXT):
-        if not file.is_file():
-            continue
-        for line in file.read_text().splitlines():
-            if line.startswith(key):
-                return line[len(key) :]
-    log.die(f"Board '{board}' not found in boards.txt / boards.local.txt")

@@ -5,13 +5,13 @@
             "ZEPHYR_BASE": "${config:ZEPHYR_BASE}",
             "ZEPHYR_TOOLCHAIN_VARIANT": "${config:ZEPHYR_TOOLCHAIN_VARIANT}",
             "ZEPHYR_SDK_INSTALL_DIR": "${config:ZEPHYR_SDK_INSTALL_DIR}",
-            "BOARD_ARD": "nrf52840dk",
-            "BOARD_WEST": "nrf52840dk/nrf52840",
-            "VARIANT": "nrf52840dk_nrf52840",
+            "BOARD_ARD": "rak4631",
+            "BOARD_WEST": "rak4631/nrf52840",
+            "VARIANT": "rak4631_nrf52840",
             "DEVICE": "NRF52840_XXAA",
             "SKETCH": "sketch/lorawan",
             "SKETCH_DEBUG": "false",
-            "SAMPLE": "samples/hello_arduino",
+            "SAMPLE": "samples/blinky_arduino",
         },
         "cwd": "${workspaceFolder}"
     },
@@ -162,11 +162,13 @@
         },
         {
             "label": "Clean",
+            "type": "shell",
+
             "dependsOrder": "sequence",
+            "command": "find samples sketch -mindepth 2 -maxdepth 2 -type d -name build -exec rm -rf {} +",
+
             "dependsOn": [
-                "Loader: Clean",
-                "Sketch: Clean",
-                "Sample: Clean"
+                "Loader: Clean"
             ],
             "problemMatcher": []
         }

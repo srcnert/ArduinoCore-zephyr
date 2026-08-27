@@ -66,11 +66,16 @@ jobs:
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
           ./extra/build.sh nrf52840dk
+          ./extra/build.sh rak4631
 
       - name: Build samples
-        # Standalone Zephyr build of the samples
+        # Standalone Zephyr build of the samples. The sample list comes
+        # from DEFAULT_SAMPLES in extra/rak/sample_check.py, so this stays
+        # in sync with what 'west rak-checkall' builds locally.
         working-directory: ${{ env.MODULE_PATH }}
-        run: west rak-sample-check
+        run: |
+          west rak-sample-check -b nrf52840dk/nrf52840
+          west rak-sample-check -b rak4631/nrf52840
 
       - name: Fetch the PR base branch
         # rak-lint diffs the working tree against the merge-base with
@@ -85,7 +90,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' ||
           !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
         working-directory: ${{ env.MODULE_PATH }}
-        run: west rak-lint -v -b build/nrf52840dk_nrf52840
+        run: west rak-lint -v -b build/rak4631_nrf52840
 
       - name: Install arduino-cli
         # Pinned (script and binary) for reproducible sketch builds.
@@ -105,4 +110,5 @@ jobs:
         run: |
           mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
           ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
-          west rak-sketch-check
+          west rak-sketch-check -b nrf52840dk
+          west rak-sketch-check -b rak4631
