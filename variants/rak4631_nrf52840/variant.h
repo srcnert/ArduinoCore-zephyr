@@ -46,12 +46,12 @@
  *                      P0.29 SPI_MISO, P0.26 SPI_CS
  *   QSPI:              P0.03 SCK, P0.30 DIO0, P0.29 DIO1, P0.28 DIO2,
  *                      P0.02 DIO3, P0.26 CSN
- *   Others:            P1.01 SW1, P1.02 SW2
- *                      P0.18 RESET
+ *   ADC:               P0.05 A0, P0.31 A1, P0.04 A2, P0.28 A3
+ *   Others:            P1.01 SW1, P1.02 SW2, P0.18 RESET
  *
  * I2C1 is disabled because it shares the TWI1/SPI1 hardware instance
  * with the SX1262 SPI. QSPI shares its pins with SPI2, with A3/D6 (P0.28)
- * and with LED3 (P0.02), so QSPI and the WisBlock SPI cannot be used
+ * and with LED3/D13 (P0.02), so QSPI and the WisBlock SPI cannot be used
  * at the same time. P0.18 is the nRF52840 reset line (UICR 'gpio-as-nreset'),
  * not a usable GPIO.
  */
@@ -72,12 +72,17 @@
 #define WB_A1     D10 /* P0.31, IO_SLOT */
 #define WB_SPI_CS D11 /* P0.26, SLOT_A SLOT_B SLOT_C SLOT_D IO_SLOT */
 #define WB_SW1    D12 /* P1.01, IO_SLOT */
+#define WB_LED3   D13 /* P0.02, base board LED3, shared with QSPI DIO3 */
 
 /*
  * LEDs (active high)
+ *
+ * LED1/LED2 are fitted on the RAK4631 module; LED3 is only a connector
+ * signal, so its polarity depends on the base board.
  */
 #define PIN_LED1 WB_LED1
 #define PIN_LED2 WB_LED2
+#define PIN_LED3 WB_LED3
 
 #define LED_BUILTIN PIN_LED1
 #define LED_CONN    PIN_LED2

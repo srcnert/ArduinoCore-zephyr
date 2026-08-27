@@ -66,6 +66,7 @@ and the WisBlock Technical Specification v1.0 attached to it).
 | D10         | AIN1            | P0.31        | Also A1                                  |
 | D11         | SPI_CS          | P0.26        | SPI chip select                          |
 | D12         | SW1             | P1.01        | WisBlock connector pin 10                |
+| D13         | LED3            | P0.02        | Connector pin 16; shared with QSPI DIO3  |
 
 Buses:
   - `Serial` is the USB CDC sketch port

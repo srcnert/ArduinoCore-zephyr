@@ -226,19 +226,29 @@
 
 &pwm0 {
 	status = "okay";
-	pinctrl-0 = <&pwm0_default>;
+	zephyr,deferred-init;
+	pinctrl-0 = <&empty_default>;
 	pinctrl-1 = <&pwm0_sleep>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-2 = <&pwm0_default>;
+	pinctrl-names = "default", "sleep", "arduino";
 };
 
 &pwm1 {
 	status = "okay";
-	pinctrl-0 = <&pwm1_default>;
+	zephyr,deferred-init;
+	pinctrl-0 = <&empty_default>;
 	pinctrl-1 = <&pwm1_sleep>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-2 = <&pwm1_default>;
+	pinctrl-names = "default", "sleep", "arduino";
 };
 
 &pinctrl {
+	empty_default: empty_default {
+		group1 {
+			psels = <>;
+		};
+	};
+
 	pwm0_default: pwm0_default {
 		group1 {
 			/* RAK4631 LEDs/IOs are active high: idle low. */
