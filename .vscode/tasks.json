@@ -5,7 +5,7 @@
             "ZEPHYR_BASE": "${config:ZEPHYR_BASE}",
             "ZEPHYR_TOOLCHAIN_VARIANT": "${config:ZEPHYR_TOOLCHAIN_VARIANT}",
             "ZEPHYR_SDK_INSTALL_DIR": "${config:ZEPHYR_SDK_INSTALL_DIR}",
-            "BOARD": "rak4631",
+            "BOARD_ARD": "rak4631",
             "BOARD_WEST": "rak4631/nrf52840",
             "VARIANT": "rak4631_nrf52840",
             "DEVICE": "NRF52840_XXAA",

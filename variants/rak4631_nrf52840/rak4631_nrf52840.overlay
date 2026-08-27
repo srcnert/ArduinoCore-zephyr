@@ -69,6 +69,10 @@
 	status = "disabled";
 };
 
+&uicr {
+	nfct-pins-as-gpios;
+};
+
 /* RTC backend for the Arduino RTC library */
 &rtc2 {
 	status = "okay";
@@ -84,7 +88,7 @@
  * these pins are repurposed as SPI2, A3/D6 and the D11 CS GPIO.
  */
 &qspi {
-	status = "okay";
+	status = "disabled";
 	pinctrl-0 = <&qspi_default>;
 	pinctrl-1 = <&qspi_sleep>;
 	pinctrl-names = "default", "sleep";
