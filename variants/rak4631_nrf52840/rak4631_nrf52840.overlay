@@ -178,15 +178,35 @@
 				<&gpio0 4 0>,	/* A2 - WB_IO4 (D3) */
 				<&gpio0 28 0>;	/* A3 - WB_IO7 (D6) */
 
-		pwms = <&pwm0 0 255 PWM_POLARITY_NORMAL>,
-		       <&pwm0 1 255 PWM_POLARITY_NORMAL>,
-		       <&pwm0 2 255 PWM_POLARITY_NORMAL>,
-		       <&pwm0 3 255 PWM_POLARITY_NORMAL>,
-		       <&pwm1 0 255 PWM_POLARITY_NORMAL>,
-		       <&pwm1 1 255 PWM_POLARITY_NORMAL>,
-		       <&pwm2 0 255 PWM_POLARITY_NORMAL>,
-		       <&pwm2 1 255 PWM_POLARITY_NORMAL>,
-		       <&pwm2 2 255 PWM_POLARITY_NORMAL>;
+		/*
+		 * The period cell is in nanoseconds. The PWM counter runs at
+		 * 16 MHz, so one count is 62.5 ns and pwm_set_pulse_dt() turns
+		 * both the period and the pulse into counts:
+		 *
+		 *   counts    = ns * 16000000 / 1000000000 = ns / 62.5
+		 *   COUNTERTOP = 2000000 / 62.5 = 32000    (2 ms, 500 Hz)
+		 *
+		 * analogWrite(pin, v) asks for v/255 of the period, so:
+		 *
+		 *   pulse_ns  = v * period_ns / 255
+		 *   COMPARE   = pulse_ns / 62.5
+		 *   duty      = COMPARE / COUNTERTOP
+		 *
+		 * e.g. v = 64 -> 501960 ns -> COMPARE 8031 -> 25 %.
+		 *
+		 * COMPARE is a whole number, so the period must hold at least
+		 * 255 counts (>= 16 us) for all 256 values of v to differ.
+		 * 500 Hz has 32000 of them and stays well above flicker.
+		 */
+		pwms = <&pwm0 0 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm0 1 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm0 2 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm0 3 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm1 0 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm1 1 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm2 0 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm2 1 PWM_HZ(500) PWM_POLARITY_NORMAL>,
+		       <&pwm2 2 PWM_HZ(500) PWM_POLARITY_NORMAL>;
 
 		io-channels = <&adc 3>,	/* A0 - WB_A0 (AIN3) */
 			      <&adc 7>,	/* A1 - WB_A1 (AIN7) */

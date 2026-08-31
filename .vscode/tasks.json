@@ -88,10 +88,12 @@
             "command": "arduino-cli",
             "args": [
                 "compile",
+                "--warnings", "more",
+                "--clean",
                 "-b", "rak:zephyr:${BOARD_ARD}",
                 "-e", "${SKETCH}",
-                "--board-options", "debug=${SKETCH_DEBUG}",
-                // "--v"
+                "--board-options", "debug=${SKETCH_DEBUG},baseboard=rak19007",
+                // "-v"
             ],
             "group": {
                 "kind": "build",
