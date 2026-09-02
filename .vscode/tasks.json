@@ -9,7 +9,7 @@
             "BOARD_WEST": "rak4631/nrf52840",
             "VARIANT": "rak4631_nrf52840",
             "DEVICE": "NRF52840_XXAA",
-            "SKETCH": "sketch/lorawan",
+            "SKETCH": "sketch/time",
             "SKETCH_DEBUG": "false",
             "SAMPLE": "samples/blinky_arduino",
         },

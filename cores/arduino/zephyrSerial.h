@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include <zephyr/sys/ring_buffer.h>
 #include <zephyr/kernel.h>
 #include <api/HardwareSerial.h>
@@ -46,9 +49,32 @@ public:
 		return 1;
 	}
 
+	size_t printf(const char *fmt, ...) __printf_like(2, 3) {
+		char buf[PRINTF_BUF_SIZE];
+		va_list ap;
+
+		va_start(ap, fmt);
+		int len = vsnprintf(buf, sizeof(buf), fmt, ap);
+		va_end(ap);
+
+		if (len < 0) {
+			return 0;
+		}
+
+		printk("%s", buf);
+
+		return MIN(sizeof(buf) - 1, static_cast<size_t>(len));
+	}
+
 	operator bool() {
 		return true;
 	}
+
+private:
+	/* printf() formats into a buffer of this size on the stack; longer
+	 * output is truncated.
+	 */
+	static constexpr size_t PRINTF_BUF_SIZE = 256;
 };
 
 class ZephyrSerial : public HardwareSerial {
@@ -89,6 +115,9 @@ public:
 	}
 
 	using Print::write; // pull in write(str) and write(buf, size) from Print
+
+	size_t printf(const char *fmt, ...) __printf_like(2, 3);
+
 	int available();
 	int availableForWrite();
 	int peek();
@@ -111,7 +140,7 @@ protected:
 
 } // namespace arduino
 
-/* Return the index of it if matched, oterwise return an empty string. */
+/* Return the index of it if matched, otherwise return an empty string. */
 #define ZARD_SERIAL_MATCH(n, p, i, node)                                                           \
 	COND_CODE_1(DT_SAME_NODE(DT_PHANDLE_BY_IDX(n, p, i), node), (i), ())
 
@@ -126,9 +155,9 @@ protected:
  */
 #define ZARD_SERIAL_NAME_BY_NODE(node)                                                             \
 	COND_CODE_0(IS_EMPTY(ZARD_SERIAL_INDEXOF(node)),                                           \
-                    (ZARD_SERIAL_NAME(ZARD_SERIAL_INDEXOF(node))),			           \
-                    (COND_CODE_1(DT_SAME_NODE(node, ZARD_SERIALUSB_PHANDLE),                       \
-                                 (SerialUSB), (unkown Serial object))))
+					(ZARD_SERIAL_NAME(ZARD_SERIAL_INDEXOF(node))),           \
+					(COND_CODE_1(DT_SAME_NODE(node, ZARD_SERIALUSB_PHANDLE),                       \
+								 (SerialUSB), (unknown Serial object))))
 
 /* Serial object associated with the Zephyr console. */
 #define ARDUINO_CONSOLE_SERIAL ZARD_SERIAL_NAME_BY_NODE(DT_CHOSEN(zephyr_console))

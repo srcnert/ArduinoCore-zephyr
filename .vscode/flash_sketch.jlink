@@ -1,4 +1,4 @@
-loadbin sketch/lorawan/build/rak.zephyr.rak4631/lorawan.ino.elf-zsk.bin, 0x70000
+loadbin sketch/time/build/rak.zephyr.rak4631/time.ino.elf-zsk.bin, 0x70000
 r
 g
 exit
