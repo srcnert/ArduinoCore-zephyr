@@ -7,13 +7,12 @@
 
 #pragma once
 
-#include <stdarg.h>
-#include <stdio.h>
-
 #include <zephyr/sys/ring_buffer.h>
 #include <zephyr/kernel.h>
 #include <api/HardwareSerial.h>
 #include <zephyrPinctrl.h>
+
+#include <rak/zephyrRAKSerial.h>
 
 namespace arduino {
 
@@ -49,35 +48,12 @@ public:
 		return 1;
 	}
 
-	size_t printf(const char *fmt, ...) __printf_like(2, 3) {
-		char buf[PRINTF_BUF_SIZE];
-		va_list ap;
-
-		va_start(ap, fmt);
-		int len = vsnprintf(buf, sizeof(buf), fmt, ap);
-		va_end(ap);
-
-		if (len < 0) {
-			return 0;
-		}
-
-		printk("%s", buf);
-
-		return MIN(sizeof(buf) - 1, static_cast<size_t>(len));
-	}
-
 	operator bool() {
 		return true;
 	}
-
-private:
-	/* printf() formats into a buffer of this size on the stack; longer
-	 * output is truncated.
-	 */
-	static constexpr size_t PRINTF_BUF_SIZE = 256;
 };
 
-class ZephyrSerial : public HardwareSerial {
+class ZephyrSerial : public HardwareSerial, public rak::ZephyrRAKSerial {
 public:
 	template <int SZ> class ZephyrSerialBuffer {
 		friend arduino::ZephyrSerial;
@@ -100,6 +76,8 @@ public:
 		begin(baudrate, SERIAL_8N1);
 	}
 
+	using rak::ZephyrRAKSerial::begin;
+
 	void flush();
 
 	void end() {
@@ -115,9 +93,6 @@ public:
 	}
 
 	using Print::write; // pull in write(str) and write(buf, size) from Print
-
-	size_t printf(const char *fmt, ...) __printf_like(2, 3);
-
 	int available();
 	int availableForWrite();
 	int peek();
@@ -130,6 +105,10 @@ public:
 	friend class SerialUSB_;
 
 protected:
+	const struct device *getUartDevice() const override {
+		return uart;
+	}
+
 	void IrqHandler();
 	static void IrqDispatch(const struct device *dev, void *data);
 

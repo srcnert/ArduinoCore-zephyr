@@ -14,11 +14,6 @@
 
 namespace {
 
-/* printf() formats into a buffer of this size on the stack; longer output is
- * truncated.
- */
-constexpr size_t PRINTF_STACK_BUF_SIZE = 256;
-
 enum uart_config_parity conf_parity(uint16_t conf) {
 	switch (conf & SERIAL_PARITY_MASK) {
 	case SERIAL_PARITY_EVEN:
@@ -158,21 +153,6 @@ int arduino::ZephyrSerial::read() {
 	k_sem_give(&rx.sem);
 
 	return cb_ret ? data : -1;
-}
-
-size_t arduino::ZephyrSerial::printf(const char *fmt, ...) {
-	char buf[PRINTF_STACK_BUF_SIZE];
-	va_list ap;
-
-	va_start(ap, fmt);
-	int len = vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-
-	if (len < 0) {
-		return 0;
-	}
-
-	return write(buf, min(sizeof(buf) - 1, static_cast<size_t>(len)));
 }
 
 size_t arduino::ZephyrSerial::write(const uint8_t *buffer, size_t size) {

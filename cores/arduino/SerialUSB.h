@@ -28,6 +28,8 @@ public:
 		begin(baudrate, SERIAL_8N1);
 	}
 
+	using ZephyrSerial::begin;
+
 	operator bool() override;
 	size_t write(const uint8_t *buffer, size_t size) override;
 
