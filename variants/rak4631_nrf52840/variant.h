@@ -89,6 +89,8 @@
 
 #define LED_GREEN PIN_LED1
 #define LED_BLUE  PIN_LED2
+#define GREEN_LED PIN_LED1
+#define BLUE_LED  PIN_LED2
 
 #define LED_STATE_ON 1
 

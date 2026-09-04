@@ -5,9 +5,9 @@
  */
 
 /*
- *  This example shows serial function.
- *  In this example, Serial1 set 5 seconds timeout, user can type in Serial1,
- *  after read '\r' or exceed 5 seconds, Serial1 will print the user's input.
+ * This example shows serial function.
+ * In this example, Serial1 set 5 seconds timeout, user can type in Serial1,
+ * after read '\r' or exceed 5 seconds, Serial1 will print the user's input.
  */
 
 #include "Arduino.h"
