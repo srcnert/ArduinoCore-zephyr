@@ -105,7 +105,7 @@ public:
 	friend class SerialUSB_;
 
 protected:
-	const struct device *getUartDevice() const override {
+	const struct device *getUartDevice() const {
 		return uart;
 	}
 

@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include <zephyrSerial.h>
+#include <rak/zephyrRAKSerial.h>
 
+#ifdef CONFIG_RAK_RUI_API
 /* RAK additions to the core live in the 'rak' namespace. */
 using namespace rak;
+#endif

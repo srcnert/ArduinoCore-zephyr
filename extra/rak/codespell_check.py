@@ -38,6 +38,8 @@ BINARY_SUFFIXES = {
     ".zip",
 }
 
+IGNORE_WORDS = ["rsource"]
+
 
 class CodespellCheck(utils.CheckCommand):
     def __init__(self):
@@ -52,5 +54,5 @@ class CodespellCheck(utils.CheckCommand):
             args.verbose, ignore_suffixes=BINARY_SUFFIXES
         )
 
-        cmd = ["codespell"]
+        cmd = ["codespell", f"--ignore-words-list={','.join(IGNORE_WORDS)}"]
         utils.run_tool(cmd, name=self.name, files=files, ignored=ignored)

@@ -1,0 +1,14 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+config RAK_RUI_API
+	bool "RAK extensions to the Arduino API"
+	depends on ARDUINO_API
+	default n
+	help
+	  Build the RAK additions in cores/arduino/rak and make them part of the
+	  Arduino core.
+
+	  With this option disabled the core behaves like upstream
+	  ArduinoCore-zephyr and none of the RAK sources are compiled.
