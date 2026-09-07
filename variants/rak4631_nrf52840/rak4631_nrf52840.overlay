@@ -21,6 +21,19 @@
 		compatible = "zephyr,log-uart";
 		uarts = <&board_cdc_acm_logging>;
 	};
+
+	/*
+	 * WisBlock 3V3_S: IO2 (P1.02, WB_IO2 / D1)
+	 * IO2=1 on, IO2=0 off. Drive it low at boot so the rail is off
+	 * in a defined state; a sketch enables it with
+	 * digitalWrite(WB_IO2, HIGH) before using sensor modules.
+	 */
+	vdd_3v3_s: regulator-3v3-s {
+		compatible = "regulator-fixed";
+		regulator-name = "3V3_S";
+		enable-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+		regulator-boot-off;
+	};
 };
 
 /*

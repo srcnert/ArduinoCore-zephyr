@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <time.h>
 #include <rak/zephyrRAKSerial.h>
 
 #ifdef CONFIG_RAK_RUI_API

@@ -225,6 +225,13 @@ arduino-cli compile -b rak:zephyr:rak4631 -e sketch/blinky
 
 This compiles `blinky.ino`.
 
+Some sketches include third-party libraries. Install them once with
+`arduino-cli lib install` command:
+
+```shell
+arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library"
+```
+
 ## 6. Building Zephyr Samples
 
 ```shell

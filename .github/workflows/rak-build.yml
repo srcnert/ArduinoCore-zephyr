@@ -29,6 +29,7 @@ jobs:
     env:
       CMAKE_PREFIX_PATH: /opt/toolchains
       MODULE_PATH: ArduinoCore-zephyr
+      ARDUINO_DIRECTORIES_USER: /tmp/arduino-user
     steps:
       - uses: actions/checkout@v6
         with:
@@ -103,10 +104,15 @@ jobs:
       - name: Install the Arduino Zephyr toolchain
         run: arduino-cli core install arduino:zephyr_main@0.90.0
 
+      - name: Install the sketch libraries
+        # Third-party libraries the sketches in sketch/ include, pinned
+        # like the core above. Keep in sync with README.rak.md section 5.
+        run: |
+          arduino-cli lib install \
+            "SparkFun SHTC3 Humidity and Temperature Sensor Library@1.1.4"
+
       - name: Compile sketches
         working-directory: ${{ env.MODULE_PATH }}
-        env:
-          ARDUINO_DIRECTORIES_USER: /tmp/arduino-user
         run: |
           mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
           ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
