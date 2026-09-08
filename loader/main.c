@@ -202,9 +202,9 @@ static int loader(const struct shell *sh) {
 			}
 		}
 #endif
-		loader_usb_enable();
-#if SHELL_ON_CDC_PORT
 		if (debug) {
+			loader_usb_enable();
+#if SHELL_ON_CDC_PORT
 			int dtr;
 			do {
 				// wait for the shell port to open
@@ -212,8 +212,8 @@ static int loader(const struct shell *sh) {
 				k_sleep(K_MSEC(100));
 			} while (!dtr);
 			LOG_INF("shell: port open (DTR set)");
-		}
 #endif
+		}
 #if !SHELL_ON_CDC_PORT
 		enable_shell_usb();
 		LOG_INF("shell: restarted on '%s'", shell_dev->name);
