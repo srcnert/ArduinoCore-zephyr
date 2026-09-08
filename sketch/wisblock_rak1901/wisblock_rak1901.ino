@@ -5,6 +5,8 @@
  */
 
 /*
+ * https://docs.rakwireless.com/product-categories/wisblock/rak1901/quickstart/
+ *
  * Setup and read values from a SHTC3 temperature and humidity sensor.
  *
  * This example is based on the official WisBlock RAK1901 example, see
@@ -12,7 +14,7 @@
  * https://github.com/RAKWireless/WisBlock
  *
  * To build this example, you need to install the SHTC3 library with:
- * arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library"
+ * arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library@1.1.4"
  */
 
 #include <Arduino.h>

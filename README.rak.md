@@ -226,11 +226,19 @@ arduino-cli compile -b rak:zephyr:rak4631 -e sketch/blinky
 This compiles `blinky.ino`.
 
 Some sketches include third-party libraries. Install them once with
-`arduino-cli lib install` command:
+`arduino-cli lib install`. The RAK13800 library is installed from its git
+repository, because the Library Manager only carries an old release. Git
+installs are disabled by default, so enable them first:
 
 ```shell
+arduino-cli config set library.enable_unsafe_install true
 arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library"
+arduino-cli lib install --git-url https://github.com/RAKWireless/RAK13800-W5100S.git#1.0.4
 ```
+
+If the Library Manager release was installed earlier, remove it first with
+`arduino-cli lib uninstall RAK13800_W5100S`; otherwise arduino-cli finds two
+copies of the same header.
 
 ## 6. Building Zephyr Samples
 

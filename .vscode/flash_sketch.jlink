@@ -1,4 +1,4 @@
-loadbin sketch/wisblock_rak1901/build/rak.zephyr.rak4631/wisblock_rak1901.ino.elf-zsk.bin, 0x70000
+loadbin sketch/wisblock_rak13800/build/rak.zephyr.rak4631/wisblock_rak13800.ino.elf-zsk.bin, 0x70000
 r
 g
 exit
