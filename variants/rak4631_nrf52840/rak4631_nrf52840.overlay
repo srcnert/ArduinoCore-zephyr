@@ -21,19 +21,6 @@
 		compatible = "zephyr,log-uart";
 		uarts = <&board_cdc_acm_logging>;
 	};
-
-	/*
-	 * WisBlock 3V3_S: IO2 (P1.02, WB_IO2 / D1)
-	 * IO2=1 on, IO2=0 off. Drive it low at boot so the rail is off
-	 * in a defined state; a sketch enables it with
-	 * digitalWrite(WB_IO2, HIGH) before using sensor modules.
-	 */
-	vdd_3v3_s: regulator-3v3-s {
-		compatible = "regulator-fixed";
-		regulator-name = "3V3_S";
-		enable-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-		regulator-boot-off;
-	};
 };
 
 /*
@@ -75,6 +62,19 @@
 
 &blue_led {
 	gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+};
+
+/*
+ * WisBlock 3V3_S: IO2 (P1.02, WB_IO2 / D1)
+ * IO2=1 on, IO2=0 off.
+ */
+&gpio1 {
+	wb-3v3-s {
+		gpio-hog;
+		gpios = <2 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "3V3_S";
+	};
 };
 
 /* WB_IO5/WB_IO6 (P0.09/P0.10) are the NFC pins; use them as GPIOs. */
