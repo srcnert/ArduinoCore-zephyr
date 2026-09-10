@@ -121,4 +121,4 @@ jobs:
           mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
           ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
           west rak-sketch-check -b nrf52840dk
-          west rak-sketch-check -b rak4631
+          west rak-sketch-check -b rak4631 --baseboard rak19007

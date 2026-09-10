@@ -5,12 +5,15 @@
 """Compile every sketch in sketch/ with arduino-cli.
 
 Usage:
-    west rak-sketch-check                 # compile all sketches
-    west rak-sketch-check -v              # verbose compiler output
-    west rak-sketch-check -b rak4631      # pick another board
+    west rak-sketch-check                       # compile all sketches
+    west rak-sketch-check -v                    # verbose compiler output
+    west rak-sketch-check -b rak4631            # pick another board
+    west rak-sketch-check --baseboard rak19007  # pick a WisBlock base board
 
 Each direct subdirectory of sketch/ that contains a .ino file is
-compiled with 'arduino-cli compile -b rak:zephyr:<board>'.
+compiled with 'arduino-cli compile -b rak:zephyr:<board>'. The base
+board is passed as the 'baseboard' board option (menu.baseboard in
+boards.txt), which selects the WISBLOCK_BASE_* macro the sketches use.
 """
 
 import subprocess
@@ -44,12 +47,22 @@ class SketchCheck(utils.CheckCommand):
             default=DEFAULT_BOARD,
             help=f"board name from boards.local.txt (default: {DEFAULT_BOARD})",
         )
+        parser.add_argument(
+            "--baseboard",
+            metavar="NAME",
+            help="WisBlock base board passed as 'baseboard' board option "
+            "(e.g. rak19007); default: the board's first menu entry",
+        )
         return parser
 
     def do_run(self, args, unknown_args):
         variant = utils.board_property(args.board, "build.variant")
         if not variant:
             log.die(f"Board '{args.board}' not found in boards.txt / boards.local.txt")
+
+        options = []
+        if args.baseboard:
+            options += ["--board-options", f"baseboard={args.baseboard}"]
 
         edk = utils.REPO_ROOT / "variants" / variant / "llext-edk"
         if not edk.is_dir():
@@ -64,12 +77,13 @@ class SketchCheck(utils.CheckCommand):
             return
 
         fqbn = f"rak:zephyr:{args.board}"
-        log.inf(f"Compiling {len(sketches)} sketch(es) for {fqbn}...")
+        suffix = f" (baseboard={args.baseboard})" if args.baseboard else ""
+        log.inf(f"Compiling {len(sketches)} sketch(es) for {fqbn}{suffix}...")
 
         failed = []
         for sketch in sketches:
             log.inf(f"--- {sketch.name} ---")
-            cmd = ["arduino-cli", "compile", "-b", fqbn, str(sketch)]
+            cmd = ["arduino-cli", "compile", "-b", fqbn, *options, str(sketch)]
             if args.verbose:
                 cmd.append("-v")
             try:
