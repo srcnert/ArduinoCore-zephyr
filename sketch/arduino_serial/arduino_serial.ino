@@ -21,6 +21,7 @@ void setup() {
 
 	Serial.println("RAKwireless Arduino Serial Example");
 	Serial.println("------------------------------------------------------");
+
 	Serial1.print("Current time out: ");
 	Serial1.println(Serial1.getTimeout()); // get Serial1 timeout
 	Serial1.println("Set Timeout to 5000");

@@ -104,6 +104,7 @@ void setup() {
 
 	Serial.println("RAKwireless Arduino Bit and Byte Example");
 	Serial.println("------------------------------------------------------");
+
 	// call function
 	test_bit();
 	test_bitSet();

@@ -56,7 +56,11 @@ void setup() {
 			break;
 		}
 	}
-	Serial.println("RAK13800 Ethernet HTTP Client example.");
+
+	Serial.println("RAKwireless RAK13800 Wisblock Example");
+	Serial.println("------------------------------------------------------");
+
+	Serial.println("Ethernet HTTP Client example.");
 
 	Ethernet.init(SPI, SS);
 	Serial.println("Initialize Ethernet with DHCP:");

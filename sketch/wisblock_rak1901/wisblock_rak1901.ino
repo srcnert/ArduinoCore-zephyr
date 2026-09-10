@@ -98,6 +98,9 @@ void setup() {
 		}
 	}
 
+	Serial.println("RAKwireless RAK1901 Wisblock Example");
+	Serial.println("------------------------------------------------------");
+
 	Wire.begin();
 	Serial.println("shtc3 init");
 	Serial.print("Beginning sensor. Result = "); // Most SHTC3 functions return a variable of the

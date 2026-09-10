@@ -26,6 +26,7 @@ void setup() {
 
 	Serial.println("RAKwireless Arduino Digital Example");
 	Serial.println("------------------------------------------------------");
+
 	// initialize the LED pin as an output
 	pinMode(ledPin, OUTPUT);
 	// initialize digital pin "inputPin" as an input with the internal pull-up resistor enabled

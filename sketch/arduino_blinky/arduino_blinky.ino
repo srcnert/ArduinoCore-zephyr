@@ -5,18 +5,22 @@
  */
 
 void setup() {
+	// initialize serial communication at 115200 bits per second
 	Serial.begin(115200);
+	delay(2000);
+
 	pinMode(LED_BUILTIN, OUTPUT);
 
-	Serial.println("RAK4631 blinky started");
+	Serial.println("RAKwireless Arduino Blinky Example");
+	Serial.println("-------------------------------------------");
 }
 
 void loop() {
 	digitalWrite(LED_BUILTIN, HIGH);
 	Serial.println("LED ON");
-	delay(500);
+	delay(1000);
 
 	digitalWrite(LED_BUILTIN, LOW);
 	Serial.println("LED OFF");
-	delay(500);
+	delay(1000);
 }

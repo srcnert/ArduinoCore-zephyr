@@ -37,6 +37,7 @@ void setup() {
 
 	Serial.println("RAKwireless Arduino LED Breathing Example");
 	Serial.println("------------------------------------------------------");
+
 	// initialize the LED pin as an output
 	pinMode(ledPin1, OUTPUT);
 	pinMode(ledPin2, OUTPUT);
