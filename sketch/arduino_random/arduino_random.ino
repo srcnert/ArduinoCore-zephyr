@@ -25,7 +25,7 @@ void setup() {
 	Serial.println("------------------------------------------------------");
 
 	// initializes the pseudo-random number generator
-	randomSeed(analogRead(WB_A0));
+	randomSeed(analogRead(inputPin));
 }
 
 void loop() {

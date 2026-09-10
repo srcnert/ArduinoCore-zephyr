@@ -10,12 +10,14 @@
 
 #include "Arduino.h"
 
-// Set pin number
+// Set pin numbers
 #if defined(WISBLOCK_BASE_19007)
 uint8_t analogPin = WB_A1;
+uint8_t inputPin = WB_IO1;
 #else
 #warning Please set the right pin refer to the documentation
 uint8_t analogPin = 0xFF; // analog Pins
+uint8_t inputPin = 0xFF;
 #endif
 
 /*
@@ -33,8 +35,8 @@ void setup() {
 	Serial.println("------------------------------------------------------");
 
 	// Assume RAK5811 is plugged, so turn on RAK5811 first.
-	pinMode(WB_IO1, OUTPUT);
-	digitalWrite(WB_IO1, HIGH);
+	pinMode(inputPin, OUTPUT);
+	digitalWrite(inputPin, HIGH);
 
 	analogReadResolution(14);
 }

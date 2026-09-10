@@ -12,7 +12,9 @@
 #include <api/HardwareSerial.h>
 #include <zephyrPinctrl.h>
 
+#if defined(CONFIG_RAK_RUI_API)
 #include <rak/zephyrRAKSerial.h>
+#endif /* CONFIG_RAK_RUI_API */
 
 namespace arduino {
 
@@ -53,7 +55,11 @@ public:
 	}
 };
 
+#if defined(CONFIG_RAK_RUI_API)
 class ZephyrSerial : public HardwareSerial, public rak::ZephyrRAKSerial {
+#else
+class ZephyrSerial : public HardwareSerial {
+#endif /* CONFIG_RAK_RUI_API */
 public:
 	template <int SZ> class ZephyrSerialBuffer {
 		friend arduino::ZephyrSerial;
@@ -76,7 +82,9 @@ public:
 		begin(baudrate, SERIAL_8N1);
 	}
 
+#if defined(CONFIG_RAK_RUI_API)
 	using rak::ZephyrRAKSerial::begin;
+#endif /* CONFIG_RAK_RUI_API */
 
 	void flush();
 
@@ -105,9 +113,11 @@ public:
 	friend class SerialUSB_;
 
 protected:
+#if defined(CONFIG_RAK_RUI_API)
 	const struct device *getUartDevice() const {
 		return uart;
 	}
+#endif /* CONFIG_RAK_RUI_API */
 
 	void IrqHandler();
 	static void IrqDispatch(const struct device *dev, void *data);

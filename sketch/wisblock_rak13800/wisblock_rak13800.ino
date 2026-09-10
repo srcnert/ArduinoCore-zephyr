@@ -19,6 +19,17 @@
 
 #define SERVER_PORT 80 //  Define the server port.
 
+#if defined(WISBLOCK_BASE_19007)
+uint8_t powerPin = WB_IO2;
+uint8_t resetPin = WB_IO3;
+uint8_t ssPin = SS;
+#else
+#warning Please set the right pin refer to the documentation
+uint8_t powerPin = 0xFF;
+uint8_t resetPin = 0xFF;
+uint8_t ssPin = 0xFF;
+#endif
+
 // If you don't want to use DNS (and reduce your sketch size)
 // Use the numeric IP instead of the name for the server.
 // IPAddress server(74,125,232,128);  // Numeric IP for Google (no DNS)
@@ -38,13 +49,13 @@ unsigned long byteCount = 0;
 bool printWebData = true; // Set to false for better speed measurement
 
 void setup() {
-	pinMode(WB_IO2, OUTPUT);
-	digitalWrite(WB_IO2, HIGH); // Enable power supply.
+	pinMode(powerPin, OUTPUT);
+	digitalWrite(powerPin, HIGH); // Enable power supply.
 
-	pinMode(WB_IO3, OUTPUT);
-	digitalWrite(WB_IO3, LOW); // Reset Time.
+	pinMode(resetPin, OUTPUT);
+	digitalWrite(resetPin, LOW); // Reset Time.
 	delay(100);
-	digitalWrite(WB_IO3, HIGH); // Reset Time.
+	digitalWrite(resetPin, HIGH); // Reset Time.
 
 	time_t timeout = millis();
 	// Initialize Serial for debug output.
@@ -62,7 +73,7 @@ void setup() {
 
 	Serial.println("Ethernet HTTP Client example.");
 
-	Ethernet.init(SPI, SS);
+	Ethernet.init(SPI, ssPin);
 	Serial.println("Initialize Ethernet with DHCP:");
 	if (Ethernet.begin(mac) == 0) // Start the Ethernet connection.
 	{
