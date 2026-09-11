@@ -1,3 +1,4 @@
+# Copyright (c) Arduino s.r.l. and/or its affiliated companies
 # SPDX-License-Identifier: Apache-2.0
 zephyr_include_directories(.)
 zephyr_include_directories(../../variants)
@@ -22,5 +23,6 @@ zephyr_sources(main.cpp)
 zephyr_sources(threads.cpp)
 endif()
 
-endif()
+add_subdirectory_ifdef(CONFIG_RAK_RUI_API rak)
 
+endif()

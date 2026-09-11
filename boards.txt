@@ -19,6 +19,7 @@
 menu.debug=Debug
 menu.link_mode=Link mode
 menu.wait_linux_boot=Startup mode
+menu.baseboard=WisBlock Base
 
 ##########################################################################################
 
@@ -773,6 +774,11 @@ rak4631.menu.link_mode.dynamic=Dynamic
 rak4631.menu.link_mode.static=Static
 rak4631.menu.link_mode.static.build.link_mode=static
 rak4631.menu.link_mode.static.upload.extension=bin-zsk.bin
+
+# Sketches select the pinout with the matching WISBLOCK_BASE_* macro.
+rak4631.menu.baseboard.none=None (no baseboard macro)
+rak4631.menu.baseboard.rak19007=RAK19007
+rak4631.menu.baseboard.rak19007.build.extra_flags=-DWISBLOCK_BASE_19007
 
 rak4631.build.zephyr_target=rak4631/nrf52840
 rak4631.build.zephyr_args=

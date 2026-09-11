@@ -60,3 +60,5 @@ config USB_DEVICE_PID
 	default 0x0001
 
 endif
+
+rsource "Kconfig.rak"

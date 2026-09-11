@@ -2,5 +2,4 @@
 # Author: sercan.erat@rakwireless.com
 # SPDX-License-Identifier: Apache-2.0
 
-CONFIG_ARDUINO_API=y
-CONFIG_RAK_RUI_API=y
+zephyr_sources_ifdef(CONFIG_RAK_RUI_API zephyrRAKSerial.cpp)

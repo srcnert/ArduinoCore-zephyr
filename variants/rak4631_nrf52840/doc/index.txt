@@ -77,9 +77,10 @@ Buses:
 
 On the RAK19007 base board:
 
-- Sensor slots are powered from the 3V3_S rail, which is switched by
-  WB_IO2: call `pinMode(1, OUTPUT); digitalWrite(1, HIGH);` (D1) before
-  talking to sensor modules.
+- Sensor slots A-D get their switched 3V3_S rail through WB_IO2 (D1):
+  IO2=1 on, IO2=0 off. The loader drives it low at boot
+  (`regulator-fixed` node in the overlay), so the rail is off until a
+  sketch enables it. Modules that only use VDD, such as the RAK1901, are unaffected.
 - A0 is also wired to the battery voltage divider
   (1.5 MOhm / 2.5 MOhm), so `VBAT = analogRead(A0)` scaled by 5/3
   (and by the ADC reference); IO-slot modules driving AIN0 conflict
