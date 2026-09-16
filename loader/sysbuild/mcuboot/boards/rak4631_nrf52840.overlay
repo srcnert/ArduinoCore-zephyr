@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/* Same flash layout as the loader, so the two images always agree on it. */
+#include "../../../../variants/rak4631_nrf52840/rak4631_nrf52840_partitions.dtsi"
+
+/ {
+	aliases {
+		mcuboot-led0 = &green_led;
+  };
+};
+
+/ {
+	chosen {
+		zephyr,code-partition = &boot_partition;
+	};
+};
+
+/*
+ * The RAK4631 LEDs are active high: green on P1.03 (D7),
+ * blue on P1.04 (D8). The base board declares them active low.
+ */
+&green_led {
+	gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+};
+
+&blue_led {
+	gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+};

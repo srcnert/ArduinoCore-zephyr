@@ -32,7 +32,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "--debug"
+                "--debug",
+                "--mcuboot"
             ],
             "group": "build",
             "problemMatcher": ["$gcc"]

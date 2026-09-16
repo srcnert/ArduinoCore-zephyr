@@ -38,6 +38,7 @@ manifest:
           - lvgl
           - fatfs
           - loramac-node
+          - zcbor
           - hal_nordic
         # path-allowlist:
         #   - modules/hal/*
