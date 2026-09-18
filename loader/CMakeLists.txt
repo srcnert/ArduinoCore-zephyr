@@ -1,3 +1,5 @@
+# Copyright (c) Arduino s.r.l. and/or its affiliated companies
+# Copyright (c) 2026 RAKwireless Technology Limited
 # SPDX-License-Identifier: Apache-2.0
 
 #set(DTC_OVERLAY_FILE ${BOARD}.overlay)

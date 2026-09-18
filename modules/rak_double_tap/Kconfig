@@ -1,0 +1,25 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig RAK_DOUBLE_TAP
+	bool "Enter the bootloader on a double tap reset"
+	depends on RETENTION_BOOT_MODE
+	select HWINFO
+	help
+	  Pressing the reset button twice within RAK_DOUBLE_TAP_WINDOW_MS duration
+	  to set the boot-mode to BOOT_MODE_TYPE_BOOTLOADER through the retention
+	  area chosen as zephyr,boot-mode.
+
+if RAK_DOUBLE_TAP
+
+config RAK_DOUBLE_TAP_WINDOW_MS
+	int "Double-tap window in milliseconds"
+	default 500
+	range 50 5000
+	help
+	  Time after a press of the reset button during which a second press
+	  enters the bootloader. The bootloader busy-waits for this long after
+	  every such press, so it adds directly to that boot's time.
+
+endif # RAK_DOUBLE_TAP
