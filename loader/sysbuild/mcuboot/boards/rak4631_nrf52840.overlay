@@ -4,18 +4,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* Same flash layout as the loader, so the two images always agree on it. */
+/* Same flash layout as the loader.  */
 #include "../../../../variants/rak4631_nrf52840/rak4631_nrf52840_partitions.dtsi"
+/* Same boot-mode retention area as the loader. */
+#include "../../../../variants/rak4631_nrf52840/rak4631_nrf52840_bootmode.dtsi"
 
 / {
 	aliases {
-		mcuboot-led0 = &green_led;
+		mcuboot-led0 = &blue_led;
   };
 };
 
 / {
 	chosen {
 		zephyr,code-partition = &boot_partition;
+		zephyr,uart-mcumgr = &board_cdc_acm_mcuboot;
+	};
+};
+
+&zephyr_udc0 {
+	board_cdc_acm_mcuboot: board_cdc_acm_mcuboot {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
 	};
 };
 

@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* Flash layout, shared with the MCUboot image (loader/sysbuild/mcuboot). */
+/* Flash layout, shared with the MCUboot image as well. */
 #include "rak4631_nrf52840_partitions.dtsi"
+/* Boot-mode retention area, shared with the MCUboot image as well. */
+#include "rak4631_nrf52840_bootmode.dtsi"
 
 /{
 	chosen {
@@ -13,7 +15,7 @@
 		zephyr,log-uart = &log_uarts;
 		zephyr,shell-uart = &board_cdc_acm_shell;
 		zephyr,code-partition = &code_partition;
-		zephyr,uart-mcumgr = &board_cdc_acm_sketch;
+		/delete-property/ zephyr,uart-mcumgr;
 	};
 
 	aliases {
