@@ -791,7 +791,18 @@ rak4631.build.board=RAK4631
 rak4631.vid.0=0x1915
 rak4631.pid.0=0x5300
 rak4631.upload_port.0.vid=0x1915
-rak4631.upload_port.0.pid=0x5300
+rak4631.upload_port.0.pid=0x5301
 rak4631.upload.target=nrf52840
+
+rak4631.upload.tool=mcumgr
+rak4631.upload.tool.default=mcumgr
+rak4631.upload.protocol=
+rak4631.upload.transport=
+rak4631.upload.use_1200bps_touch=false
+rak4631.upload.wait_for_upload_port=false
+
+rak4631.bootloader.tool=mcumgr
+rak4631.bootloader.tool.default=mcumgr
+rak4631.bootloader.file=zephyr-{build.variant}.bin
 
 ##########################################################################################
