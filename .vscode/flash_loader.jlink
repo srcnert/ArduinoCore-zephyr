@@ -1,3 +1,4 @@
+loadfile firmwares/mcuboot-rak4631_nrf52840.hex
 loadfile firmwares/zephyr-rak4631_nrf52840.hex
 r
 g
