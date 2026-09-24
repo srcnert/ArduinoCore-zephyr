@@ -31,22 +31,22 @@
 
 /*
  * USB CDC-ACM ports, in enumeration order:
- *  1. logging: console (printk/stdout msg)+ log backend
- *  2. sketch:  the sketch's 'Serial' (SerialUSB)
- *  3. shell:   Zephyr shell (debug builds only, unused otherwise)
+ *  1. sketch:  the sketch's 'Serial' (SerialUSB)
+ *  2. shell:   Zephyr shell (debug builds only, unused otherwise)
+ *  3. logging: console (printk/stdout msg)+ log backend (debug builds only, unused otherwise)
  */
 &zephyr_udc0 {
-	board_cdc_acm_logging: board_cdc_acm_logging {
-		compatible = "zephyr,cdc-acm-uart";
-		status = "okay";
-	};
-
 	board_cdc_acm_sketch: board_cdc_acm_sketch {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
 	};
 
 	board_cdc_acm_shell: board_cdc_acm_shell {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	board_cdc_acm_logging: board_cdc_acm_logging {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
 	};

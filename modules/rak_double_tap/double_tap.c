@@ -47,6 +47,8 @@ static int double_tap_check(void) {
 	bool button = reset_by_button();
 
 	if (bootmode_check(BOOT_MODE_TYPE_BOOTLOADER) == 1) {
+		/* 1200 bps touch: same as a second tap. */
+		window_led_set(true);
 		return 0;
 	}
 
