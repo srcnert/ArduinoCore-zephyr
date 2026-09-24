@@ -6,6 +6,13 @@ Install go tool:
 brew install go
 ```
 
+If a new key will be used, please run following commands:
+```shell
+cd <rak-arduino-zephyr>
+<TOOLCHAIN_BASE>/bin/python3 -m pip install -r bootloader/mcuboot/scripts/requirements.txt
+<TOOLCHAIN_BASE>/bin/python3 bootloader/mcuboot/scripts/imgtool.py keygen -k ArduinoCore-zephyr/key/arduino_key_ecdsa-p256.pem -t ecdsa-p256
+```
+
 # Updating MCU over UART/USB-CDC
 Firstly, go must be installed. After that, mcumgr and scripting-tools
 can be installed via following command:
