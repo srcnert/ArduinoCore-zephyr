@@ -384,13 +384,21 @@ tools.mcumgr.loader.cmd="{path}/{cmd}" {conn} image upload -n 1 "{upload.artifac
 tools.mcumgr.sketch.cmd="{path}/{cmd}" {conn} image upload -n 2 "{upload.artifacts.sketch}"
 tools.mcumgr.reset.cmd="{path}/{cmd}" {conn} reset
 
+# arduino-cli never sends the 1200-bps touch for burn-bootloader, so the
+# bootloader pattern sends it itself and waits for MCUboot's port.
+tools.mcumgr.touch.cmd=stty -F {serial.port} 1200
+tools.mcumgr.touch.cmd.macosx=stty -f {serial.port} 1200
+tools.mcumgr.touch.cmd.windows=mode {serial.port} BAUD=1200
+tools.mcumgr.wait.cmd=sleep 2
+tools.mcumgr.wait.cmd.windows=powershell -NoProfile -Command Start-Sleep -Seconds 2
+
 tools.mcumgr.upload.params.verbose=
 tools.mcumgr.upload.params.quiet=
 tools.mcumgr.upload.pattern="{scripting.path}/{scripting.cmd}" run {sketch.cmd} :: run {reset.cmd}
 
 tools.mcumgr.bootloader.params.verbose=
 tools.mcumgr.bootloader.params.quiet=
-tools.mcumgr.bootloader.pattern="{scripting.path}/{scripting.cmd}" run {loader.cmd} :: run {reset.cmd}
+tools.mcumgr.bootloader.pattern="{scripting.path}/{scripting.cmd}" run {touch.cmd} :: run {wait.cmd} :: run {loader.cmd} :: run {reset.cmd}
 
 
 #
