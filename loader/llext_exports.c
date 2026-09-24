@@ -549,4 +549,8 @@ FORCE_EXPORT_SYM(lorawan_register_dr_changed_callback);
 FORCE_EXPORT_SYM(lorawan_register_link_check_ans_callback);
 #endif
 
+#if defined(CONFIG_RETENTION_BOOT_MODE)
+FORCE_EXPORT_SYM(bootmode_set);
+#endif
+
 EXPORT_SYMBOL(sketch_header_v1_verify);

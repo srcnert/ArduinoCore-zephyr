@@ -4,12 +4,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* Flash layout, shared with the MCUboot image as well. */
+#include "rak4631_nrf52840_partitions.dtsi"
+/* Boot-mode retention area, shared with the MCUboot image as well. */
+#include "rak4631_nrf52840_bootmode.dtsi"
+
 /{
 	chosen {
 		zephyr,console = &board_cdc_acm_logging;
 		zephyr,log-uart = &log_uarts;
 		zephyr,shell-uart = &board_cdc_acm_shell;
 		zephyr,code-partition = &code_partition;
+		/delete-property/ zephyr,uart-mcumgr;
 	};
 
 	aliases {
@@ -25,22 +31,22 @@
 
 /*
  * USB CDC-ACM ports, in enumeration order:
- *  1. logging: console (printk/stdout msg)+ log backend
- *  2. sketch:  the sketch's 'Serial' (SerialUSB)
- *  3. shell:   Zephyr shell (debug builds only, unused otherwise)
+ *  1. sketch:  the sketch's 'Serial' (SerialUSB)
+ *  2. shell:   Zephyr shell (debug builds only, unused otherwise)
+ *  3. logging: console (printk/stdout msg)+ log backend (debug builds only, unused otherwise)
  */
 &zephyr_udc0 {
-	board_cdc_acm_logging: board_cdc_acm_logging {
-		compatible = "zephyr,cdc-acm-uart";
-		status = "okay";
-	};
-
 	board_cdc_acm_sketch: board_cdc_acm_sketch {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
 	};
 
 	board_cdc_acm_shell: board_cdc_acm_shell {
+		compatible = "zephyr,cdc-acm-uart";
+		status = "okay";
+	};
+
+	board_cdc_acm_logging: board_cdc_acm_logging {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
 	};
@@ -118,40 +124,6 @@
 	pinctrl-names = "default", "sleep";
 };
 
-/delete-node/ &boot_partition;
-/delete-node/ &slot0_partition;
-/delete-node/ &slot1_partition;
-
-&flash0 {
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
-
-		code_partition: partition@0 {
-			label = "code";
-			reg = <0x00000000 0x00070000>;
-			read-only;
-		};
-
-		user_sketch: partition@70000 {
-			label = "user";
-			reg = <0x070000 0x88000>;
-		};
-
-		/*
-		 * The flash starting at 0x000f8000 and ending at
-		 * 0x000fffff is reserved for use by the application.
-		 *
-		 * Storage partition will be used by FCB/LittleFS/NVS
-		 * if enabled.
-		 */
-		storage_partition: partition@f8000 {
-			label = "storage";
-			reg = <0x000f8000 0x00008000>;
-		};
-	};
-};
 
 /* Arduino API pin mappings */
 / {
@@ -225,6 +197,8 @@
 			      <&adc 7>,	/* A1 - WB_A1 (AIN7) */
 			      <&adc 2>,	/* A2 - WB_IO4 (AIN2) */
 			      <&adc 4>;	/* A3 - WB_IO7 (AIN4) */
+
+		builtin-led-gpios = <&gpio1 3 0>;
 
 		i2cs = <&i2c0>;	/* 'Wire': WisBlock sensor I2C (SDA P0.13, SCL P0.14) */
 		spis = <&spi2>;	/* 'SPI': WisBlock header SPI */

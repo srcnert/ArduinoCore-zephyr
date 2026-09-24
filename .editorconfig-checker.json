@@ -11,6 +11,8 @@
     "firmwares/",
     "loader/blobs/",
     "llext-edk/",
-    "extra/build.sh"
+    "extra/build.sh",
+    "loader/CMakeLists.txt",
+    "^CMakeLists\\.txt$"
   ]
 }

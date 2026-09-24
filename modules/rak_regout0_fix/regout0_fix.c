@@ -17,13 +17,12 @@
  * boards powered in normal-voltage mode.
  */
 
-#include <zephyr/init.h>
-
-#if defined(CONFIG_BOARD_NRF52840DK) || defined(CONFIG_BOARD_RAK4631_NRF52840)
 #include <cmsis_core.h>
 #include <hal/nrf_power.h>
 
-static int rak4630_vddh_regout0_3v3(void) {
+#include <zephyr/init.h>
+
+static int rak_vddh_regout0_3v3(void) {
 	if ((nrf_power_mainregstatus_get(NRF_POWER) == NRF_POWER_MAINREGSTATUS_HIGH) &&
 		((NRF_UICR->REGOUT0 & UICR_REGOUT0_VOUT_Msk) ==
 		 (UICR_REGOUT0_VOUT_DEFAULT << UICR_REGOUT0_VOUT_Pos))) {
@@ -46,5 +45,4 @@ static int rak4630_vddh_regout0_3v3(void) {
 	return 0;
 }
 
-SYS_INIT(rak4630_vddh_regout0_3v3, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
-#endif /* CONFIG_BOARD_NRF52840DK || CONFIG_BOARD_RAK4631_NRF52840 */
+SYS_INIT(rak_vddh_regout0_3v3, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
