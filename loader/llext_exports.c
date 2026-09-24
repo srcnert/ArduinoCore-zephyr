@@ -23,6 +23,8 @@
 #include <mbedtls/debug.h>
 #endif
 
+#include "../cores/arduino/zephyr_sketch_header.h"
+
 #define FORCE_EXPORT_SYM(name)                                                                     \
 	extern void name(void);                                                                        \
 	EXPORT_SYMBOL(name);
@@ -546,3 +548,5 @@ FORCE_EXPORT_SYM(lorawan_register_downlink_callback);
 FORCE_EXPORT_SYM(lorawan_register_dr_changed_callback);
 FORCE_EXPORT_SYM(lorawan_register_link_check_ans_callback);
 #endif
+
+EXPORT_SYMBOL(sketch_header_v1_verify);
