@@ -553,4 +553,8 @@ FORCE_EXPORT_SYM(lorawan_register_link_check_ans_callback);
 FORCE_EXPORT_SYM(bootmode_set);
 #endif
 
+#if defined(CONFIG_REBOOT)
+FORCE_EXPORT_SYM(sys_reboot);
+#endif
+
 EXPORT_SYMBOL(sketch_header_v1_verify);

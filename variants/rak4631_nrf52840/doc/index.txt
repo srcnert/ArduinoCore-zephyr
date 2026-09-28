@@ -47,9 +47,8 @@ ecosystem. The pinout is as follows:
 | GND                         | GND      | 39  | 40  | GND      | GND                         |
 +-----------------------------+----------+-----+-----+----------+-----------------------------+
 
-Signal names follow the WisBlock connector specification (see the
-[upstream WisBlock platform PR](https://github.com/zephyrproject-rtos/zephyr/pull/113140)
-and the WisBlock Technical Specification v1.0 attached to it).
+Signal names follow the WisBlock connector specification (see the WisBlock Technical
+Specification v1.0).
 
 | Arduino pin | WisBlock signal | nRF52840 pin | Notes                                    |
 |-------------|-----------------|--------------|------------------------------------------|
@@ -78,10 +77,24 @@ Buses:
 On the RAK19007 base board:
 
 - Sensor slots A-D get their switched 3V3_S rail through WB_IO2 (D1):
-  IO2=1 on, IO2=0 off. The loader drives it low at boot
-  (`regulator-fixed` node in the overlay), so the rail is off until a
+  IO2=1 on, IO2=0 off. The loader drives it low at boot , so the rail is off until a
   sketch enables it. Modules that only use VDD, such as the RAK1901, are unaffected.
 - A0 is also wired to the battery voltage divider
   (1.5 MOhm / 2.5 MOhm), so `VBAT = analogRead(A0)` scaled by 5/3
   (and by the ADC reference); IO-slot modules driving AIN0 conflict
   with it.
+
+How to use MCUboot bootloader with arduino-cli:
+
+Requirement: arduino-cli uploads through MCUboot's serial recovery (mcumgr over
+USB), so MCUboot must already be on the board. Before the first arduino-cli
+upload, flash the MCUboot hex (`firmwares/mcuboot-rak4631_nrf52840.hex`, built by
+`extra/build.sh rak4631 --mcuboot`) over SWD with a J-Link or a RAKDAP1 probe.
+arduino-cli cannot install MCUboot itself.
+
+Entering serial recovery: `arduino-cli upload` first sends a 1200-bps touch to
+the board's USB port. A sketch that has called `Serial.begin()` handles it; with
+no sketch on the board (or with a `--debug` loader) the loader handles it. When
+the board shows no USB port (the sketch never opens `Serial`, or it has
+crashed), the touch is lost: double-tap the reset button to enter serial
+recovery, then upload.

@@ -162,11 +162,11 @@ arduino-cli version   # verify the installation
 ### Install the Arduino Zephyr toolchain (one time)
 
 ```shell
-arduino-cli core install arduino:zephyr_main@0.90.0
+arduino-cli core install arduino:zephyr_main@1.0.0
 ```
 
 The official `arduino:zephyr_main` core supplies the cross compiler
-referenced by `boards.txt` (`arm-zephyr-eabi` 0.16.8) and the
+referenced by `boards.txt` (`arm-zephyr-eabi` 1.0.1) and the
 post-processing tools (`gen-rodata-ld`, `zephyr-sketch-tool`,
 `zephyr-check-size`) that the `{runtime.tools.*}` recipes in
 `platform.txt` resolve against.
@@ -181,6 +181,7 @@ cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
 (cd tools/zephyr-sketch-tool && go build)
 (cd tools/gen-rodata-ld && go build)
 (cd tools/zephyr-check-size && go build)
+(cd tools/mcumgr && go build)
 ```
 
 Each binary is produced inside its own tool directory

@@ -31,13 +31,20 @@ static void window_led_set(bool on) {
 
 static bool reset_by_button(void) {
 	uint32_t cause = 0;
-	int rc;
 
-	rc = hwinfo_get_reset_cause(&cause);
+	int ret = hwinfo_get_reset_cause(&cause);
 	(void)hwinfo_clear_reset_cause();
 
-	if (rc != 0) {
+	if (ret != 0) {
 		return false;
+	}
+
+	/*
+	 * Consume only RESET_PIN: the loader and the sketch still need the
+	 * remaining bits to tell a power-on from a watchdog or soft reset.
+	 */
+	if (cause & RESET_PIN) {
+		(void)hwinfo_clear_reset_cause();
 	}
 
 	return (cause & RESET_PIN) != 0;

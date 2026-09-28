@@ -376,9 +376,6 @@ tools.mcumgr.path={runtime.tools.mcumgr.path}
 tools.mcumgr.cmd=mcumgr
 tools.mcumgr.cmd.windows=mcumgr.exe
 tools.mcumgr.conn=--conntype serial --connstring "dev={serial.port},baud=115200,mtu=4096"
-tools.mcumgr.scripting.path={runtime.tools.scripting.path}
-tools.mcumgr.scripting.cmd=scripting-tools
-tools.mcumgr.scripting.cmd.windows=scripting-tools.exe
 
 tools.mcumgr.loader.cmd="{path}/{cmd}" {conn} image upload -n 1 "{upload.artifacts.loader}"
 tools.mcumgr.sketch.cmd="{path}/{cmd}" {conn} image upload -n 2 "{upload.artifacts.sketch}"
@@ -394,11 +391,11 @@ tools.mcumgr.wait.cmd.windows=powershell -NoProfile -Command Start-Sleep -Second
 
 tools.mcumgr.upload.params.verbose=
 tools.mcumgr.upload.params.quiet=
-tools.mcumgr.upload.pattern="{scripting.path}/{scripting.cmd}" run {sketch.cmd} :: run {reset.cmd}
+tools.mcumgr.upload.pattern="{runtime.tools.scripting-tools.path}/scripting-tools" run {sketch.cmd} :: run {reset.cmd}
 
 tools.mcumgr.bootloader.params.verbose=
 tools.mcumgr.bootloader.params.quiet=
-tools.mcumgr.bootloader.pattern="{scripting.path}/{scripting.cmd}" run {touch.cmd} :: run {wait.cmd} :: run {loader.cmd} :: run {reset.cmd}
+tools.mcumgr.bootloader.pattern="{runtime.tools.scripting-tools.path}/scripting-tools" run {touch.cmd} :: run {wait.cmd} :: run {loader.cmd} :: run {reset.cmd}
 
 
 #

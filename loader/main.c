@@ -25,6 +25,11 @@ LOG_MODULE_REGISTER(sketch);
 #include <zephyr/devicetree/fixed-partitions.h>
 #include "../cores/arduino/zephyr_sketch_header.h"
 
+#if defined(CONFIG_RETENTION_BOOT_MODE)
+#include <zephyr/retention/bootmode.h>
+#include <zephyr/sys/reboot.h>
+#endif
+
 #define SKETCH_RAM_BUFFER_LEN 131072
 
 /* Need to replicate logic from zephyrSerial.h to avoid C++ here */
@@ -59,6 +64,21 @@ static void loader_usb_msg_cb(struct usbd_context *const ctx, const struct usbd_
 			usbd_enable(ctx);
 		}
 	}
+
+#if defined(CONFIG_RETENTION_BOOT_MODE)
+	/* 1200-bps touch while the loader owns USB for no sketch yet case. */
+	if (msg->type == USBD_MSG_CDC_ACM_LINE_CODING && msg->dev == usb_dev) {
+		uint32_t baudrate = 0;
+
+		uart_line_ctrl_get(usb_dev, UART_LINE_CTRL_BAUD_RATE, &baudrate);
+		if (baudrate == 1200) {
+			k_sleep(K_MSEC(100));
+			usbd_disable(ctx);
+			bootmode_set(BOOT_MODE_TYPE_BOOTLOADER);
+			sys_reboot(SYS_REBOOT_COLD);
+		}
+	}
+#endif
 }
 
 int loader_usb_enable(void) {
@@ -310,7 +330,8 @@ static int loader(const struct shell *sh) {
 
 	size_t sketch_buf_len = sketch_hdr->len;
 
-	if (sketch_hdr->flags & SKETCH_FLAG_LINKED) {
+	// an erased sketch area reads flags 0xff, never jump into it
+	if (sketch_valid && (sketch_hdr->flags & SKETCH_FLAG_LINKED)) {
 #ifdef CONFIG_BOARD_ARDUINO_PORTENTA_C33
 #if CONFIG_MPU
 		barrier_dmem_fence_full();

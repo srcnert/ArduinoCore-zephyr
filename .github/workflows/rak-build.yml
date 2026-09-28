@@ -67,7 +67,7 @@ jobs:
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
           ./extra/build.sh nrf52840dk
-          ./extra/build.sh rak4631
+          ./extra/build.sh rak4631 --mcuboot
 
       - name: Build samples
         # Standalone Zephyr build of the samples. The sample list comes
@@ -91,7 +91,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' ||
           !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
         working-directory: ${{ env.MODULE_PATH }}
-        run: west rak-lint -v -b build/rak4631_nrf52840
+        run: west rak-lint -v -b build/rak4631_nrf52840/loader
 
       - name: Install arduino-cli
         # Pinned (script and binary) for reproducible sketch builds.
@@ -102,7 +102,7 @@ jobs:
           arduino-cli version
 
       - name: Install the Arduino Zephyr toolchain
-        run: arduino-cli core install arduino:zephyr_main@0.90.0
+        run: arduino-cli core install arduino:zephyr_main@1.0.0
 
       - name: Install the sketch libraries
         # Third-party libraries the sketches in sketch/ include, pinned

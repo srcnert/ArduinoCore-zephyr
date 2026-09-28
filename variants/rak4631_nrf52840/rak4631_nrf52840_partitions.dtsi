@@ -35,7 +35,10 @@
 			read-only;
 		};
 
-		/* Sketch. */
+		/*
+		 * Sketch: a zsk blob, not an MCUboot image. The slot1 label only
+		 * makes it "image 2" for mcumgr direct uploads.
+		 */
 		slot1_partition: user_sketch: partition@80000 {
 			label = "image-1";
 			reg = <0x00080000 0x00078000>;
