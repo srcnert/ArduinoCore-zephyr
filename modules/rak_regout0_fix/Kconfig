@@ -1,0 +1,13 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+config RAK_REGOUT0_FIX
+	bool "Program UICR REGOUT0 to 3.3 V on a VDDH-powered RAK4630"
+	depends on BOARD_RAK4631_NRF52840
+	help
+	  Early-boot hook for the RAK4630 module, whose nRF52840 is supplied
+	  through VDDH. A full chip erase leaves UICR REGOUT0 at its 1.8 V
+	  default, which underpowers the LEDs and 3.3 V peripherals. The hook
+	  programs REGOUT0 to 3.3 V once and resets the chip. It is a no-op
+	  when the chip runs in normal-voltage mode or REGOUT0 is already set.

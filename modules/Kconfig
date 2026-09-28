@@ -1,0 +1,8 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+menu "RAKwireless Modules"
+rsource "rak_double_tap/Kconfig"
+rsource "rak_regout0_fix/Kconfig"
+endmenu

@@ -63,8 +63,11 @@ def _build_checks(board):
         log.die(f"Board '{board}' not found in boards.txt / boards.local.txt")
 
     return [
-        (f"loader build ({board})", ["./extra/build.sh", board]),
-        ("cppcheck static analysis", ["west", "rak-lint", "-b", f"build/{variant}"]),
+        (f"loader build ({board})", ["./extra/build.sh", board, "--mcuboot"]),
+        (
+            "cppcheck static analysis",
+            ["west", "rak-lint", "-b", f"build/{variant}/loader"],
+        ),
         (f"sketch compilation ({board})", ["west", "rak-sketch-check", "-b", board]),
         (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
     ]

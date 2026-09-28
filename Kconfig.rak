@@ -12,3 +12,5 @@ config RAK_RUI_API
 
 	  With this option disabled the core behaves like upstream
 	  ArduinoCore-zephyr and none of the RAK sources are compiled.
+
+rsource "modules/Kconfig"
