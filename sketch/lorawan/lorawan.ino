@@ -163,6 +163,7 @@ void setup() {
 
 	Serial.println("=== RAK4631 LoRaWAN class A test ===");
 
+	/* Set the LoRaWAN region */
 	int ret = lorawan_set_region(LORAWAN_REGION_EU868);
 	if (ret) {
 		Serial.print("Failed to set LoRaWAN region: ");
