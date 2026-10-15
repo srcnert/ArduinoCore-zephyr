@@ -40,6 +40,7 @@
 // ---------------
 #define PIN_PDM_CLK  (23)
 #define PIN_PDM_DIN  (22)
+#define PIN_PDM_PWR  (-1)  /* no dedicated power pin on this board */
 
 // IMU Interrupt
 #define INT_IMU      (21)
@@ -128,6 +129,8 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 // NINA Serial aliases
 #define SerialNina      Serial3
 #define SerialHCI       Serial2
+
+extern uint32_t SystemCoreClock;
 
 // Note: nina_pins.h should be included after Arduino.h
 // It is automatically included by WiFiNINA.h when needed

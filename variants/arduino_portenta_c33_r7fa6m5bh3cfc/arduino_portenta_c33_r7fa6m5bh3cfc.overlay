@@ -423,7 +423,7 @@
   					<&ioport8 5 GPIO_ACTIVE_HIGH>, /*   D57    |   TX4    */
   					<&ioport5 13 GPIO_ACTIVE_HIGH>, /*   D58    |   RX4    */
   					<&ioport5 8 GPIO_ACTIVE_HIGH>, /*   D59    |   RTS4   */
-  					<&ioport5 5 GPIO_ACTIVE_HIGH>, /*   D60    |   CTS4   */
+  					<&ioport5 0 GPIO_ACTIVE_HIGH>, /*   D60    |   CTS4   */
   					<&ioport6 3 GPIO_ACTIVE_HIGH>, /*   D61    |   RTS0   */
   					<&ioport6 4 GPIO_ACTIVE_HIGH>, /*   D62    |   CTS0   */
 
@@ -540,4 +540,12 @@ qspi_flash: &at25sf128a {};
 		disk-access;
 		mount-point = "/SD:";
 	};
+};
+
+/* External interrupt channel 6: P000 (D22/A7), P301 (D40), P409 (D28) and
+ * PA08 (D75). NVIC line 36 is not used by any other device.
+ */
+&port_irq6 {
+	interrupts = <36 12>;
+	status = "okay";
 };

@@ -11,11 +11,13 @@
 #include <zephyr/drivers/regulator.h>
 #include <zephyr/kernel.h>
 
+#include "zephyrPinctrl.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 
-#if defined(ARDUINO_NANO33BLE)
+#if PDM_IS_NRF
 #include <hal/nrf_pdm.h>
 #endif
 
@@ -37,7 +39,7 @@ static struct k_msgq pdm_rx_msgq;
 static char __aligned(4) pdm_msgq_buffer[SLAB_BLOCK_NUM * sizeof(void *)];
 
 static struct k_mem_slab pdm_slab;
-static uint8_t __aligned(32) pdm_slab_buffer[SLAB_BLOCK_SIZE * SLAB_BLOCK_NUM];
+static uint8_t __aligned(SLAB_ALIGN) pdm_slab_buffer[SLAB_BLOCK_SIZE * SLAB_BLOCK_NUM];
 
 static struct k_thread pdm_thread_data;
 static k_thread_stack_t *pdm_thread_stack;
@@ -49,14 +51,35 @@ static void (*_onReceive)(void) = NULL;
  * ---- PDM DRIVER INTERFACE (zephyr dmic) ----
  */
 
-#if defined(ARDUINO_NANO33BLE) || defined(ARDUINO_GIGA)
-
 static struct pcm_stream_cfg stream;
 static struct dmic_cfg cfg;
 /* the PDM mic zephyr device */
 static const struct device *const dmic_dev = DEVICE_DT_GET(DT_NODELABEL(dmic_dev));
-#if defined(ARDUINO_GIGA)
+#if PDM_IS_DFSDM
 static const struct device *dfsdm_dev = DEVICE_DT_GET(DT_NODELABEL(dfsdm));
+
+/* DFSDM has no analog gain: apply a saturating digital gain per sample. */
+static int pdm_digital_gain = PDM_DEFAULT_GAIN;
+
+static void pdm_apply_gain(void *block, size_t bytes) {
+	const int g = pdm_digital_gain;
+	if (g <= 1) {
+		return;
+	}
+#if PDM_SAMPLE_BIT_WIDTH == 16
+	int16_t *s = (int16_t *)block;
+	for (size_t i = 0; i < bytes / sizeof(int16_t); i++) {
+		int64_t v = (int64_t)s[i] * g;
+		s[i] = (v > INT16_MAX) ? INT16_MAX : (v < INT16_MIN) ? INT16_MIN : (int16_t)v;
+	}
+#elif PDM_SAMPLE_BIT_WIDTH == 24
+	int32_t *s = (int32_t *)block;
+	for (size_t i = 0; i < bytes / sizeof(int32_t); i++) {
+		int64_t v = (int64_t)s[i] * g;
+		s[i] = (v > 8388607) ? 8388607 : (v < -8388608) ? -8388608 : (int32_t)v;
+	}
+#endif
+}
 #endif
 
 static int pdm_read(void **buffer, size_t *size) {
@@ -66,24 +89,19 @@ static int pdm_read(void **buffer, size_t *size) {
 static int pdm_configure(int channels, int sampleRate) {
 	/* checks and verifications */
 
+	int err;
 	/* note: due to the hierarchical structure of the DFSDM peripheral with
 	 * Arduino GIGA is necessary to turn dfsm on before the actual pdm which in
 	 * this case is just a filter within the dfsdm */
-#if defined(ARDUINO_GIGA)
-	if (!device_is_ready(dfsdm_dev)) {
-		int err = device_init(dfsdm_dev);
-		if (err < 0) {
-			return -ENODEV;
-		}
+#if PDM_IS_DFSDM
+	err = zephyr::arduino::init_dev_apply_pinctrl(dfsdm_dev);
+	if (err < 0) {
+		return err;
 	}
 #endif
-	/* verify digital microphone is ready */
-	if (!device_is_ready(dmic_dev)) {
-
-		int err = device_init(dmic_dev);
-		if (err < 0) {
-			return -ENODEV;
-		}
+	err = zephyr::arduino::init_dev_apply_pinctrl(dmic_dev);
+	if (err < 0) {
+		return err;
 	}
 	/* check on channels */
 	if (channels < 1 || channels > 2) {
@@ -93,8 +111,13 @@ static int pdm_configure(int channels, int sampleRate) {
 	stream.pcm_width = PDM_SAMPLE_BIT_WIDTH;
 	stream.mem_slab = &pdm_slab;
 
-	cfg.io.min_pdm_clk_freq = 1000000;
-	cfg.io.max_pdm_clk_freq = 3500000;
+#if PDM_IS_RP2040_PIO
+	cfg.io.min_pdm_clk_freq = 1200000;
+	cfg.io.max_pdm_clk_freq = 3250000;
+#else
+	cfg.io.min_pdm_clk_freq = 1200000;
+	cfg.io.max_pdm_clk_freq = 3250000;
+#endif
 	cfg.io.min_pdm_clk_dc = 40;
 	cfg.io.max_pdm_clk_dc = 60;
 
@@ -131,14 +154,18 @@ static int pdm_stop() {
 static void pdm_gain(int gain) {
 	/* at the present the zephyr dmic_nrfx_pdm.c does not support the set
 	 * of the gain (gain_l and gain_r are defined in the nrf HAL but not
-	 * used by the driver which use a default value) */
-#if defined(ARDUINO_NANO33BLE)
+	 * used by the driver which use a default value); on the RP2040 the
+	 * decimation filter gain is fixed by the 'gain' devicetree property */
+#if PDM_IS_NRF
 	NRF_PDM->GAINR = gain;
 	NRF_PDM->GAINL = gain;
+#elif PDM_IS_DFSDM
+	/* linear digital gain multiplier, applied per sample in the RX thread */
+	pdm_digital_gain = (gain < 1) ? 1 : gain;
+#else
+	ARG_UNUSED(gain);
 #endif
 }
-
-#endif
 
 /*
  * ---- MIC RECEIVING THREAD ----
@@ -152,6 +179,9 @@ void pdm_thread(void *, void *, void *) {
 		if (ret < 0) {
 			continue;
 		}
+#if PDM_IS_DFSDM
+		pdm_apply_gain(buffer, size);
+#endif
 
 		if (k_msgq_put(&pdm_rx_msgq, &buffer, K_NO_WAIT) == 0) {
 			if (_onReceive) {

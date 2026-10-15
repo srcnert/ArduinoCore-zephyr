@@ -24,6 +24,7 @@
 #endif
 
 #include "../cores/arduino/zephyr_sketch_header.h"
+#include "loader.h"
 
 #define FORCE_EXPORT_SYM(name)                                                                     \
 	extern void name(void);                                                                        \
@@ -53,6 +54,7 @@ EXPORT_LIBC_SYM(strstr);
 EXPORT_LIBC_SYM(strncmp);
 EXPORT_LIBC_SYM(strncpy);
 EXPORT_LIBC_SYM(strcasecmp);
+EXPORT_LIBC_SYM(strncasecmp);
 EXPORT_LIBC_SYM(strcmp);
 EXPORT_LIBC_SYM(strlen);
 EXPORT_LIBC_SYM(strnlen);
@@ -147,6 +149,7 @@ EXPORT_SYMBOL(k_msgq_num_used_get);
 EXPORT_SYMBOL(k_sys_work_q);
 EXPORT_SYMBOL(k_mem_slab_init);
 EXPORT_SYMBOL(k_mem_slab_free);
+EXPORT_SYMBOL(k_mem_slab_alloc);
 
 #if defined(CONFIG_PINCTRL)
 EXPORT_SYMBOL(pinctrl_lookup_state);
@@ -321,6 +324,7 @@ FORCE_EXPORT_SYM(usbd_caps_speed);
 FORCE_EXPORT_SYM(usbd_can_detect_vbus);
 FORCE_EXPORT_SYM(usbd_enable);
 FORCE_EXPORT_SYM(usbd_disable);
+FORCE_EXPORT_SYM(usbd_device_register_vreq);
 #endif
 
 #if defined(CONFIG_SHARED_MULTI_HEAP)
@@ -349,6 +353,7 @@ EXPORT_LIBC_SYM(gettimeofday);
 #endif
 
 EXPORT_SYMBOL(sys_clock_settime);
+
 EXPORT_SYMBOL(mktime);
 EXPORT_SYMBOL(gmtime);
 
@@ -409,6 +414,7 @@ EXPORT_AEABI_SYM(__aeabi_fcmpun);
 EXPORT_AEABI_SYM(__aeabi_d2iz);
 EXPORT_AEABI_SYM(__aeabi_d2uiz);
 EXPORT_AEABI_SYM(__aeabi_d2lz);
+EXPORT_AEABI_SYM(__aeabi_d2ulz);
 EXPORT_AEABI_SYM(__aeabi_i2d);
 EXPORT_AEABI_SYM(__aeabi_ui2d);
 EXPORT_AEABI_SYM(__aeabi_l2d);
@@ -505,7 +511,7 @@ EXPORT_SYMBOL(arm_irq_is_enabled);
 EXPORT_SYMBOL(arm_irq_priority_set);
 #endif
 
-#if defined(__arm__) && !defined(CONFIG_SOC_FAMILY_RPI_PICO)
+#if defined(__arm__)
 EXPORT_SYMBOL(SystemCoreClock);
 #endif
 
