@@ -62,12 +62,17 @@ def _build_checks(board):
     if not variant or not target:
         log.die(f"Board '{board}' not found in boards.txt / boards.local.txt")
 
+    # Boards with --sysbuild in their zephyr_args boot through MCUboot (see
+    # extra/build.sh); the loader is then one image among several and has
+    # its own build directory, which is where compile_commands.json lives.
+    zephyr_args = utils.board_property(board, "build.zephyr_args") or ""
+    build_dir = f"build/{variant}"
+    if "--sysbuild" in zephyr_args.split():
+        build_dir += "/loader"
+
     return [
-        (f"loader build ({board})", ["./extra/build.sh", board, "--mcuboot"]),
-        (
-            "cppcheck static analysis",
-            ["west", "rak-lint", "-b", f"build/{variant}/loader"],
-        ),
+        (f"loader build ({board})", ["./extra/build.sh", board]),
+        ("cppcheck static analysis", ["west", "rak-lint", "-b", build_dir]),
         (f"sketch compilation ({board})", ["west", "rak-sketch-check", "-b", board]),
         (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
     ]

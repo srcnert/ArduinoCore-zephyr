@@ -34,7 +34,6 @@
             "args": [
                 "${BOARD_ARD}",
                 // "--debug",
-                "--mcuboot"
             ],
             "group": "build",
             "problemMatcher": ["$gcc"]
