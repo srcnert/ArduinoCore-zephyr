@@ -21,7 +21,7 @@ fi
 if [ $# -eq 0 ] || [ x$1 == x"-h" ] || [ x$1 == x"--help" ]; then
 	cat << EOF
 Usage:
-	$0 <arduino_board> [--debug] [--mcuboot]
+	$0 <arduino_board> [--debug]
 	$0 <zephyr_board> [<west_args>]
 Build the loader for the given target.
 
@@ -60,21 +60,15 @@ if ! [ -z "$chosen_board" ]; then
 	fi
 	upload_offset=$(jq -cr '.upload_offset' <<< "$chosen_board")
 
-	# Check for debug and mcuboot flags and append
-	for opt in "${@:2}"; do
-		case "$opt" in
-		--debug) debug=1 ;;
-		--mcuboot) mcuboot=1 ;;
-		*) echo "Unknown option: $opt"; exit 1 ;;
-		esac
-	done
-
+	# Boards with '--sysbuild' in their zephyr_args boot the loader through MCUboot
 	conf=""
-	if [ -n "$mcuboot" ]; then
-		args+=(--sysbuild)
+	if [[ " ${args[*]} " == *" --sysbuild "* ]]; then
+		mcuboot=1
 		conf="overlay_mcuboot.conf"
 	fi
-	if [ -n "$debug" ]; then
+
+	# Check for debug flag and append
+	if [ x$2 == x"--debug" ]; then
 		conf="${conf:+$conf;}../extra/debug.conf"
 	fi
 	if [ -n "$conf" ]; then
@@ -150,7 +144,7 @@ IMG=${LOADER_DIR}/zephyr/zephyr
 if [ -n "$mcuboot" ]; then
 	for ext in bin hex; do
 		if [ ! -f $IMG.signed.$ext ]; then
-			echo "error: --mcuboot build produced no $IMG.signed.$ext" >&2
+			echo "error: MCUboot build produced no $IMG.signed.$ext" >&2
 			exit 1
 		fi
 	done
@@ -165,9 +159,10 @@ for ext in elf bin hex uf2; do
 		fi
 	done
 done
-rm -f firmwares/mcuboot-$variant.hex
+# named zephyr-$variant.* so that package_core.sh ships it with the core
+rm -f firmwares/zephyr-$variant.mcuboot.hex
 if [ -n "$mcuboot" ]; then
-	cp ${BUILD_DIR}/mcuboot/zephyr/zephyr.hex firmwares/mcuboot-$variant.hex
+	cp ${BUILD_DIR}/mcuboot/zephyr/zephyr.hex firmwares/zephyr-$variant.mcuboot.hex
 fi
 cp ${LOADER_DIR}/zephyr/zephyr.dts firmwares/zephyr-$variant.dts
 cp ${LOADER_DIR}/zephyr/.config firmwares/zephyr-$variant.config

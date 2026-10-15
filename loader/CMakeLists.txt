@@ -8,8 +8,7 @@ cmake_minimum_required(VERSION 3.20.0)
 
 # get value of NORMALIZED_BOARD_TARGET early
 # 'basic_settings' must load before 'boards' so the board lookup works under
-# sysbuild: it creates the sysbuild_cache target that the boards module reads.
-# It is a no-op in a non-sysbuild build, so plain builds are unaffected.
+# sysbuild.
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE} COMPONENTS basic_settings yaml boards)
 
 set(DTC_OVERLAY_FILE ${CMAKE_CURRENT_LIST_DIR}/../variants/${NORMALIZED_BOARD_TARGET}/${NORMALIZED_BOARD_TARGET}.overlay)

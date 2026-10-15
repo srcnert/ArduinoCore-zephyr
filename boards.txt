@@ -795,7 +795,7 @@ rak4631.menu.baseboard.rak19007=RAK19007
 rak4631.menu.baseboard.rak19007.build.extra_flags=-DWISBLOCK_BASE_19007
 
 rak4631.build.zephyr_target=rak4631/nrf52840
-rak4631.build.zephyr_args=
+rak4631.build.zephyr_args=--sysbuild
 rak4631.build.zephyr_hals=hal_nordic
 rak4631.build.zephyr_toolchain=arm-zephyr-eabi
 rak4631.build.variant=rak4631_nrf52840
@@ -803,12 +803,12 @@ rak4631.build.variant=rak4631_nrf52840
 rak4631.build.extra_flags=
 rak4631.build.postbuild.cmd="{tools.imgtool.path}/{tools.imgtool.cmd}" exit
 rak4631.build.board=RAK4631
-rak4631.vid.0=0x1915
-rak4631.pid.0=0x5300
-rak4631.upload_port.0.vid=0x1915
-rak4631.upload_port.0.pid=0x5300
-rak4631.upload_port.1.vid=0x1915
-rak4631.upload_port.1.pid=0x5301
+rak4631.vid.0=0x1209
+rak4631.pid.0=0x0003
+rak4631.upload_port.0.vid=0x1209
+rak4631.upload_port.0.pid=0x0003
+rak4631.upload_port.1.vid=0x1209
+rak4631.upload_port.1.pid=0x0004
 rak4631.upload.target=nrf52840
 
 rak4631.upload.tool=mcumgr

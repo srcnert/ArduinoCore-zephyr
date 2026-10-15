@@ -9,7 +9,7 @@
 /* Boot-mode retention area, shared with the MCUboot image as well. */
 #include "rak4631_nrf52840_bootmode.dtsi"
 
-/{
+/ {
 	chosen {
 		zephyr,console = &board_cdc_acm_logging;
 		zephyr,log-uart = &log_uarts;
@@ -33,7 +33,7 @@
  * USB CDC-ACM ports, in enumeration order:
  *  1. sketch:  the sketch's 'Serial' (SerialUSB)
  *  2. shell:   Zephyr shell (debug builds only, unused otherwise)
- *  3. logging: console (printk/stdout msg)+ log backend (debug builds only, unused otherwise)
+ *  3. logging: console (printk/stdout msg) + log backend (debug builds only, unused otherwise)
  */
 &zephyr_udc0 {
 	board_cdc_acm_sketch: board_cdc_acm_sketch {
@@ -123,7 +123,6 @@
 	pinctrl-1 = <&spi2_sleep>;
 	pinctrl-names = "default", "sleep";
 };
-
 
 /* Arduino API pin mappings */
 / {
