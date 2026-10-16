@@ -35,7 +35,7 @@ IGNORE_SUFFIXES = {
 }
 
 # Never checked, matched by exact file name (dotfiles have no suffix).
-IGNORE_NAMES = {".gitignore", "VERSION"}
+IGNORE_NAMES = {".gitignore", "VERSION", "dependabot.yml"}
 # Checked even though their suffix is ignored.
 SOURCE_NAMES = {"CMakeLists.txt"}
 

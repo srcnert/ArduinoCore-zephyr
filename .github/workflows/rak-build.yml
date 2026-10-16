@@ -67,7 +67,7 @@ jobs:
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
           ./extra/build.sh nrf52840dk
-          ./extra/build.sh rak4631 --mcuboot
+          ./extra/build.sh rak4631
 
       - name: Build samples
         # Standalone Zephyr build of the samples. The sample list comes

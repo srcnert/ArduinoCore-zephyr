@@ -1,13 +1,13 @@
-## mcumgr
+## MCUmgr
 
-This directory packages the [mcumgr] command-line tool from the Apache Mynewt
+This directory packages the [MCUmgr] command-line tool from the Apache Mynewt
 project as an Arduino tool, so the core can upload images to boards running
 MCUboot.
 
 **None of the code here is original work.** It is a copy of the upstream
-mcumgr CLI, and all rights to it belong to mcumgr contributors.
+MCUmgr CLI, and all rights to it belong to MCUmgr contributors.
 
-[mcumgr]: https://github.com/apache/mynewt-mcumgr-cli
+[MCUmgr]: https://github.com/apache/mynewt-mcumgr-cli
 
 ### Building manually
 

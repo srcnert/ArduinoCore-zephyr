@@ -12,6 +12,10 @@
     "loader/blobs/",
     "llext-edk/",
     "extra/build.sh",
+    "extra/bootstrap.sh",
+    "extra/package_tool.sh",
+    "\\.github/workflows/package_core\\.yml",
+    "\\.github/workflows/package_tool\\.yml",
     "loader/CMakeLists.txt",
     "^CMakeLists\\.txt$"
   ]
