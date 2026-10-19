@@ -18,6 +18,8 @@ manifest:
       url-base: https://github.com/facchinm
     - name: pillo79
       url-base: https://github.com/pillo79
+    - name: DanielCao0
+      url-base: https://github.com/DanielCao0
 
   projects:
     - name: zephyr
@@ -57,3 +59,13 @@ manifest:
       # API changes broke the build. Update this SHA once a newer commit is
       # verified against the Zephyr revision above.
       revision: cf24edd66ab173d20f734e3f3350b1a1c053a904
+
+    - name: rzi
+      remote: DanielCao0
+      revision: arduino/zephyr-v4.4.2
+      path: modules/lib/rzi
+      import:
+        name-allowlist:
+          - usp
+          - usp_zephyr
+          - lora-basics-modem
