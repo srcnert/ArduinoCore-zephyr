@@ -4,7 +4,7 @@
 
 menuconfig RAK_DOUBLE_TAP
 	bool "Enter the bootloader on a double tap reset"
-	depends on BOARD_RAK4631_NRF52840
+	depends on BOARD_RAK4631_NRF52840 || BOARD_NRF52840DK_NRF52840
 	depends on RETENTION_BOOT_MODE
 	select HWINFO
 	help
