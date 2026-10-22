@@ -136,6 +136,19 @@ mkdir -p venv/bin && touch venv/bin/activate  # create an empty venv placeholder
 ./extra/build.sh rak4631
 ```
 
+### Loader snippets
+
+List Zephyr snippets after `-S` to apply them to the loader: `debug`
+comes from `snippets/`, `rzi` from the RZI module. On sysbuild boards
+such as rak4631 they reach the loader image only, not MCUboot.
+
+```shell
+west patch -sm rzi clean
+west patch -sm rzi -l zephyr/patches_arduino.yml apply
+./extra/build.sh rak4631 -S debug      # shell, assertions, runtime stats
+./extra/build.sh rak4631 -S debug rzi  # RZI (USP) LoRaWAN stack as well
+```
+
 ## 4. Memory Footprint Reports
 
 ```shell
