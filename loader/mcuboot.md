@@ -45,6 +45,6 @@ mcumgr --conntype serial --connstring <connection string> reset
 # Entering serial recovery
 A 1200-bps touch on the board's USB port reboots into MCUboot serial
 recovery. A sketch handles it after `Serial.begin()`; the loader handles
-it when no sketch is on the board or when it is a `--debug` build. Without
-a USB port (the sketch never opens `Serial`, or it has crashed), double-tap
-the reset button instead.
+it when no sketch is on the board or when it is built with `-S debug`.
+Without a USB port (the sketch never opens `Serial`, or it has crashed),
+double-tap the reset button instead.
