@@ -307,7 +307,8 @@ devicetree macros of that build. Changed files not compiled in that build
 override with `-b`). It needs the setup of section 5: a built loader
 (`./extra/build.sh <target>`), the in-repo host tools (`tools/*/go build`)
 and the `rak:zephyr` core registered with arduino-cli. In
-`west rak-checkall` it runs last, after the loader build.
+`west rak-checkall` it runs after the loader build, which uses `-S rzi`
+for `rak4631`. The `rak4631` builds without the snippet run in CI only.
 
 Every command prints a summary line
 (`Checked N file(s): X passed, Y failed - (Z ignored)`) and exits non-zero on
@@ -331,7 +332,9 @@ The checks run automatically on GitHub for every pull request targeting
   `west rak-lint` against the loader build's real headers, installs
   arduino-cli and the pinned `arduino:zephyr_main` core, and compiles
   the sketches in `sketch/` against that loader with
-  `west rak-sketch-check`.
+  `west rak-sketch-check`. Finally it applies the RZI patches, rebuilds
+  the `rak4631` loader with the rzi snippet (`-S rzi`) and compiles the
+  sketches again.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every

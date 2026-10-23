@@ -13,7 +13,19 @@
 
 #include <Arduino.h>
 
-#if defined(CONFIG_RZI_LORAWAN) && defined(CONFIG_RZI_LLEXT_EXPORTS)
+#if !defined(CONFIG_RZI_LORAWAN) || !defined(CONFIG_RZI_LLEXT_EXPORTS)
+
+void setup() {
+	Serial.begin(115200);
+	delay(2000);
+	Serial.println("Build the loader with the rzi snippet: extra/build.sh <board> -S rzi");
+}
+
+void loop() {
+}
+
+#else
+
 #include <zephyr/kernel.h>
 
 #include <rzi/err.h>
@@ -273,14 +285,5 @@ void loop() {
 		print_pending_events();
 		delay(100);
 	}
-}
-#else
-void setup() {
-	Serial.begin(115200);
-	delay(2000);
-	Serial.println("Build the loader with the rzi snippet: extra/build.sh <board> -S rzi");
-}
-
-void loop() {
 }
 #endif

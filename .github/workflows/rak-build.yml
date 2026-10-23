@@ -122,3 +122,14 @@ jobs:
           ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
           west rak-sketch-check -b nrf52840dk
           west rak-sketch-check -b rak4631 --baseboard rak19007
+
+      - name: Build the RZI loader and compile sketches
+        # Rebuilds the rak4631 loader with the rzi snippet (the only board
+        # it supports) so the RZI sketches compile their real code. Runs
+        # last because the RZI patches and the rebuild change what the
+        # steps above build and check.
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          west patch -sm rzi -l zephyr/patches_arduino.yml apply
+          ./extra/build.sh rak4631 -S rzi
+          west rak-sketch-check -b rak4631 --baseboard rak19007

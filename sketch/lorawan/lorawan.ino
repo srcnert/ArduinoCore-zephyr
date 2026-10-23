@@ -10,6 +10,20 @@
  */
 
 #include <Arduino.h>
+
+#if !defined(CONFIG_LORAWAN)
+
+void setup() {
+	Serial.begin(115200);
+	delay(2000);
+	Serial.println("Build the loader without the rzi snippet: extra/build.sh rak4631");
+}
+
+void loop() {
+}
+
+#else
+
 #include <zephyr/kernel.h>
 #include <zephyr/lorawan/lorawan.h>
 
@@ -313,3 +327,4 @@ void loop() {
 		delay(100);
 	}
 }
+#endif
