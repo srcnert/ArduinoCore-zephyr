@@ -61,20 +61,18 @@ if ! [ -z "$chosen_board" ]; then
 	upload_offset=$(jq -cr '.upload_offset' <<< "$chosen_board")
 
 	# Boards with '--sysbuild' in their zephyr_args boot the loader through MCUboot
-	conf=""
-	snippet_var="SNIPPET"
+	snippets=()
 	if [[ " ${args[*]} " == *" --sysbuild "* ]]; then
 		mcuboot=1
-		conf="overlay_mcuboot.conf"
-		snippet_var="loader_SNIPPET"
+		snippets=(bootloader)
 	fi
 
 	# Check for snippets and apply them to the loader only
 	if [ x$2 == x"-S" ]; then
-		args+=("--cmake-opt=-D${snippet_var}=${*:3}")
+		snippets+=("${@:3}")
 	fi
-	if [ -n "$conf" ]; then
-		args+=(-- "-DEXTRA_CONF_FILE=$conf")
+	if [ -n "${snippets[*]}" ]; then
+		args+=("--cmake-opt=-D${mcuboot:+loader_}SNIPPET=${snippets[*]}")
 	fi
 else
 	# expect Zephyr-compatible target and args
