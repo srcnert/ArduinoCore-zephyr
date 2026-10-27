@@ -5,9 +5,6 @@
  */
 
 /*
- * RZI LoRaWAN periodical uplink, ported from
- * modules/lib/rzi/samples/lorawan/periodical_uplink.
- *
  * Needs the loader built with the rzi snippet (-S rzi).
  */
 
@@ -39,6 +36,7 @@ void loop() {
 #define RETRY_DELAY_MS     5000
 #define UPLINK_INTERVAL_MS 60000
 #define UPLINK_PORT        101
+#define BLINK_PERIOD_MS    500
 
 /* Fill in your own OTAA credentials from your LoRaWAN network server */
 static const uint8_t dev_eui[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -47,7 +45,6 @@ static const uint8_t app_key[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x
 									0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t gen_app_key[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 										0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
 static bool ready;
 
 /*
@@ -57,10 +54,13 @@ static bool ready;
 static atomic_t stack_ready;
 static atomic_t join_done;
 static atomic_t joined;
+static atomic_t join_error;
 
+/* TX event state */
 static struct rzi_lorawan_tx_result tx_event;
 static atomic_t tx_pending;
 
+/* Downlink event */
 static struct {
 	uint8_t port;
 	size_t size;
@@ -71,11 +71,20 @@ static struct {
 
 static atomic_t dl_pending;
 
+/* Error event */
 static atomic_t error_event;
 static atomic_t error_pending;
 
-static void ignore_result(int result) {
-	ARG_UNUSED(result);
+/* Blinks the LED on the system workqueue until the join completes */
+static struct k_work_delayable blink_work;
+
+static void blink_handler(struct k_work *work) {
+	static bool led_on;
+
+	ARG_UNUSED(work);
+	led_on = !led_on;
+	digitalWrite(LED_BUILTIN, led_on ? HIGH : LOW);
+	k_work_schedule(&blink_work, K_MSEC(BLINK_PERIOD_MS));
 }
 
 static void on_event(const struct rzi_lorawan_event *event, void *user_data) {
@@ -95,6 +104,7 @@ static void on_event(const struct rzi_lorawan_event *event, void *user_data) {
 		atomic_set(&join_done, 1);
 		break;
 	case RZI_LORAWAN_EVENT_JOIN_FAILED:
+		atomic_set(&join_error, event->error);
 		atomic_set(&joined, 0);
 		atomic_set(&join_done, 1);
 		break;
@@ -143,13 +153,32 @@ static const char *tx_status_str(enum rzi_lorawan_tx_status status) {
 	}
 }
 
-static bool check(const char *what, int rc) {
+static const char *eui_str(const uint8_t eui[8]) {
+	static const char digits[] = "0123456789ABCDEF";
+	static char str[2 * 8 + 1];
+
+	for (size_t i = 0; i < 8; i++) {
+		str[2 * i] = digits[eui[i] >> 4];
+		str[2 * i + 1] = digits[eui[i] & 0x0F];
+	}
+	str[2 * 8] = '\0';
+	return str;
+}
+
+static bool check(const char *what, int rc, const char *value = NULL) {
+	Serial.print(what);
 	if (rc != 0) {
-		Serial.print(what);
 		Serial.print(" failed: ");
 		Serial.println(rzi_err_str(rc));
+		return false;
 	}
-	return rc == 0;
+	Serial.print(" OK");
+	if (value) {
+		Serial.print(": ");
+		Serial.print(value);
+	}
+	Serial.println();
+	return true;
 }
 
 static void print_pending_events(void) {
@@ -175,6 +204,9 @@ static void print_pending_events(void) {
 		Serial.print(dl_event.snr_quarter_db / 4.0f, 2);
 		Serial.println(" dB");
 		for (size_t i = 0; i < dl_event.size; i++) {
+			if (dl_event.data[i] < 0x10) {
+				Serial.print('0');
+			}
 			Serial.print(dl_event.data[i], HEX);
 			Serial.print(' ');
 		}
@@ -204,38 +236,53 @@ static bool request_join(void) {
 		print_pending_events();
 		delay(100);
 	}
-	return atomic_get(&joined);
+	if (!atomic_get(&joined)) {
+		Serial.print("Join failed: ");
+		Serial.println(rzi_err_str((int)atomic_get(&join_error)));
+		return false;
+	}
+	return true;
 }
 
 void setup() {
+	pinMode(LED_BUILTIN, OUTPUT);
+	k_work_init_delayable(&blink_work, blink_handler);
+
 	Serial.begin(115200);
 	delay(2000);
 
 	Serial.println("RAKwireless Arduino RZI LoRaWAN Periodical Uplink Example");
-	Serial.println("-------------------------------------------");
+	Serial.println("---------------------------------------------------------");
 
 	if (!check("RZI init", rzi_init()) ||
 		!check("Callback registration", rzi_lorawan_register_callbacks(&callbacks)) ||
-		!check("DevEUI", rzi_lorawan_set_dev_eui(dev_eui, sizeof(dev_eui))) ||
-		!check("JoinEUI", rzi_lorawan_set_app_eui(join_eui, sizeof(join_eui))) ||
+		!check("DevEUI", rzi_lorawan_set_dev_eui(dev_eui, sizeof(dev_eui)), eui_str(dev_eui)) ||
+		!check("JoinEUI", rzi_lorawan_set_app_eui(join_eui, sizeof(join_eui)), eui_str(join_eui)) ||
 		!check("AppKey", rzi_lorawan_set_app_key(app_key, sizeof(app_key))) ||
 		!check("GenAppKey", rzi_lorawan_set_gen_app_key(gen_app_key, sizeof(gen_app_key))) ||
-		!check("Activation", rzi_lorawan_set_activation(RZI_LORAWAN_ACTIVATION_OTAA)) ||
-		!check("LoRaWAN init", rzi_lorawan_init(LORAWAN_REGION))) {
+		!check("Activation", rzi_lorawan_set_activation(RZI_LORAWAN_ACTIVATION_OTAA), "OTAA") ||
+		!check("LoRaWAN init", rzi_lorawan_init(LORAWAN_REGION), STRINGIFY(LORAWAN_REGION))) {
 		return;
 	}
 
+	Serial.print("Waiting for the LoRaWAN stack");
 	while (!atomic_get(&stack_ready)) {
-		delay(10);
+		Serial.print('.');
+		delay(100);
 	}
+	Serial.println();
+	Serial.println("LoRaWAN stack OK");
 
+	k_work_schedule(&blink_work, K_NO_WAIT);
 	while (!request_join()) {
-		Serial.print("Join failed, retrying in ");
+		Serial.print("Retrying join in ");
 		Serial.print(RETRY_DELAY_MS / 1000);
 		Serial.println(" s");
-		ignore_result(rzi_lorawan_leave());
+		(void)rzi_lorawan_leave();
 		delay(RETRY_DELAY_MS);
 	}
+	k_work_cancel_delayable(&blink_work);
+	digitalWrite(LED_BUILTIN, LOW);
 	Serial.println("Joined");
 
 	/*
@@ -243,11 +290,12 @@ void setup() {
 	 * rejects set_class() until the modem is joined. set_data_rate()
 	 * pins one rate and turns ADR off, so only one of them is used.
 	 */
-	check("Class", rzi_lorawan_set_class(LORAWAN_CLASS));
+	check("Class", rzi_lorawan_set_class(LORAWAN_CLASS), STRINGIFY(LORAWAN_CLASS));
 	if (LORAWAN_ADR) {
-		check("ADR", rzi_lorawan_set_adr(true));
+		check("ADR", rzi_lorawan_set_adr(true), "enabled");
 	} else {
-		check("Data rate", rzi_lorawan_set_data_rate(LORAWAN_DATA_RATE));
+		check("Data rate", rzi_lorawan_set_data_rate(LORAWAN_DATA_RATE),
+			  STRINGIFY(LORAWAN_DATA_RATE));
 	}
 
 	ready = true;
