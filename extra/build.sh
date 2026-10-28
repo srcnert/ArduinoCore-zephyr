@@ -21,7 +21,7 @@ fi
 if [ $# -eq 0 ] || [ x$1 == x"-h" ] || [ x$1 == x"--help" ]; then
 	cat << EOF
 Usage:
-	$0 <arduino_board> [--debug]
+	$0 <arduino_board> [-S <snippet>...]
 	$0 <zephyr_board> [<west_args>]
 Build the loader for the given target.
 
@@ -61,18 +61,18 @@ if ! [ -z "$chosen_board" ]; then
 	upload_offset=$(jq -cr '.upload_offset' <<< "$chosen_board")
 
 	# Boards with '--sysbuild' in their zephyr_args boot the loader through MCUboot
-	conf=""
+	snippets=()
 	if [[ " ${args[*]} " == *" --sysbuild "* ]]; then
 		mcuboot=1
-		conf="overlay_mcuboot.conf"
+		snippets=(bootloader)
 	fi
 
-	# Check for debug flag and append
-	if [ x$2 == x"--debug" ]; then
-		conf="${conf:+$conf;}../extra/debug.conf"
+	# Check for snippets and apply them to the loader only
+	if [ x$2 == x"-S" ]; then
+		snippets+=("${@:3}")
 	fi
-	if [ -n "$conf" ]; then
-		args+=(-- "-DEXTRA_CONF_FILE=$conf")
+	if [ -n "${snippets[*]}" ]; then
+		args+=("--cmake-opt=-D${mcuboot:+loader_}SNIPPET=${snippets[*]}")
 	fi
 else
 	# expect Zephyr-compatible target and args

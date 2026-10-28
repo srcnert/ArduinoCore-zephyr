@@ -1,5 +1,0 @@
-loadfile firmwares/zephyr-rak4631_nrf52840.mcuboot.hex
-loadfile firmwares/zephyr-rak4631_nrf52840.hex
-r
-g
-exit

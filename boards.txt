@@ -760,18 +760,31 @@ nrf52840dk.menu.link_mode.static.build.link_mode=static
 nrf52840dk.menu.link_mode.static.upload.extension=bin-zsk.bin
 
 nrf52840dk.build.zephyr_target=nrf52840dk/nrf52840
-nrf52840dk.build.zephyr_args=
+nrf52840dk.build.zephyr_args=--sysbuild
 nrf52840dk.build.zephyr_hals=hal_nordic
+nrf52840dk.build.zephyr_toolchain=arm-zephyr-eabi
 nrf52840dk.build.variant=nrf52840dk_nrf52840
 
 nrf52840dk.build.extra_flags=
 nrf52840dk.build.postbuild.cmd="{tools.imgtool.path}/{tools.imgtool.cmd}" exit
 nrf52840dk.build.board=NRF52840DK
-nrf52840dk.vid.0=0x1366
-nrf52840dk.pid.0=0x1015
-nrf52840dk.upload_port.0.vid=0x1366
-nrf52840dk.upload_port.0.pid=0x1015
+nrf52840dk.vid.0=0x1915
+nrf52840dk.pid.0=0x5300
+nrf52840dk.upload_port.0.vid=0x1915
+nrf52840dk.upload_port.0.pid=0x5300
+nrf52840dk.upload_port.1.vid=0x1915
+nrf52840dk.upload_port.1.pid=0x5301
 nrf52840dk.upload.target=nrf52840
+nrf52840dk.upload.tool=mcumgr
+nrf52840dk.upload.tool.default=mcumgr
+nrf52840dk.upload.protocol=
+nrf52840dk.upload.transport=
+nrf52840dk.upload.use_1200bps_touch=true
+nrf52840dk.upload.wait_for_upload_port=true
+nrf52840dk.upload.native_usb=true
+nrf52840dk.bootloader.tool=mcumgr
+nrf52840dk.bootloader.tool.default=mcumgr
+nrf52840dk.bootloader.file=zephyr-{build.variant}.bin
 
 ##########################################################################################
 

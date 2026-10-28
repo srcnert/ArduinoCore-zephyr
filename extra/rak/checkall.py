@@ -33,6 +33,9 @@ import rak_utils as utils
 # Board built by the heavy steps unless -b says otherwise
 DEFAULT_BOARD = "rak4631"
 
+# Boards the rzi snippet supports (modules/lib/rzi/snippets/rzi/snippet.yml)
+RZI_BOARDS = {"rak4631"}
+
 # (description, command) pairs, run in this order from the repo root.
 # West commands get -v appended when running verbose.
 CHECKS = [
@@ -70,10 +73,16 @@ def _build_checks(board):
     if "--sysbuild" in zephyr_args.split():
         build_dir += "/loader"
 
+    build = ["./extra/build.sh", board]
+    label = board
+    if board in RZI_BOARDS:
+        build += ["-S", "rzi"]
+        label += ", rzi"
+
     return [
-        (f"loader build ({board})", ["./extra/build.sh", board]),
+        (f"loader build ({label})", build),
         ("cppcheck static analysis", ["west", "rak-lint", "-b", build_dir]),
-        (f"sketch compilation ({board})", ["west", "rak-sketch-check", "-b", board]),
+        (f"sketch compilation ({label})", ["west", "rak-sketch-check", "-b", board]),
         (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
     ]
 

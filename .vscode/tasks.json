@@ -5,11 +5,21 @@
             "ZEPHYR_BASE": "${config:ZEPHYR_BASE}",
             "ZEPHYR_TOOLCHAIN_VARIANT": "${config:ZEPHYR_TOOLCHAIN_VARIANT}",
             "ZEPHYR_SDK_INSTALL_DIR": "${config:ZEPHYR_SDK_INSTALL_DIR}",
+            // ------------------------------------ //
+            // "BOARD_ARD": "nrf52840dk",
+            // "BOARD_WEST": "nrf52840dk/nrf52840",
+            // "VARIANT": "nrf52840dk_nrf52840",
+            // "BOARD_OPTIONS": "",
+            // "DEVICE": "nrf52840",
+            // ------------------------------------ //
             "BOARD_ARD": "rak4631",
             "BOARD_WEST": "rak4631/nrf52840",
             "VARIANT": "rak4631_nrf52840",
-            "DEVICE": "NRF52840_XXAA",
-            "SKETCH": "sketch/arduino_blinky",
+            "BOARD_OPTIONS": ",baseboard=rak19007",
+            "DEVICE": "nrf52840",
+            // ------------------------------------ //
+            // "SKETCH": "sketch/arduino_blinky",
+            "SKETCH": "sketch/rzi/periodical_uplink",
             "SKETCH_DEBUG": "false",
             "SAMPLE": "samples/blinky_arduino",
             "SERIAL_PORT": "/dev/cu.usbmodem1101"
@@ -33,7 +43,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                // "--debug",
+                "-S", "rzi",
+                // "-S", "rzi", "debug"
             ],
             "group": "build",
             "problemMatcher": ["$gcc"]
@@ -41,13 +52,14 @@
         {
             "label": "Loader: Flash (J-Link)",
             "type": "shell",
-            "command": "${config:JLINK_PATH}/JLinkExe",
+            "command": "west",
             "args": [
-                "-device", "${DEVICE}",
-                "-if", "SWD",
-                "-speed", "4000",
-                "-autoconnect", "1",
-                "-CommanderScript", ".vscode/flash_loader.jlink"
+                "flash",
+                "-d", "build/${VARIANT}",
+                "-r", "jlink",
+                "--no-rebuild",
+                "--erase",
+                "--reset"
             ],
             "problemMatcher": []
         },
@@ -92,7 +104,7 @@
             "dependsOn": [
                 "Sketch: Clean",
                 "Sketch: Build",
-                "Sketch: Flash (J-Link)"
+                "Sketch: Flash (pyOCD)"
             ],
             "problemMatcher": []
         },
@@ -106,7 +118,7 @@
                 "--clean",
                 "-b", "rak:zephyr:${BOARD_ARD}",
                 "-e", "${SKETCH}",
-                "--board-options", "debug=${SKETCH_DEBUG},baseboard=rak19007",
+                "--board-options", "debug=${SKETCH_DEBUG}${BOARD_OPTIONS}",
                 // "-v"
             ],
             "group": {
@@ -116,16 +128,9 @@
             "problemMatcher": ["$gcc"]
         },
         {
-            "label": "Sketch: Flash (J-Link)",
+            "label": "Sketch: Flash (pyOCD)",
             "type": "shell",
-            "command": "${config:JLINK_PATH}/JLinkExe",
-            "args": [
-                "-device", "${DEVICE}",
-                "-if", "SWD",
-                "-speed", "4000",
-                "-autoconnect", "1",
-                "-CommanderScript", ".vscode/flash_sketch.jlink"
-            ],
+            "command": "pyocd load -t ${DEVICE} -a 0x80000 ${SKETCH}/build/rak.zephyr.${BOARD_ARD}/$(basename ${SKETCH}).ino.elf-zsk.bin",
             "problemMatcher": []
         },
         {
@@ -185,7 +190,7 @@
                 "Loader: Build",
                 "Loader: Flash (J-Link)",
                 "Sketch: Build",
-                "Sketch: Flash (J-Link)"
+                "Sketch: Flash (pyOCD)"
             ],
             "problemMatcher": []
         },
@@ -194,7 +199,7 @@
             "type": "shell",
 
             "dependsOrder": "sequence",
-            "command": "find samples sketch -mindepth 2 -maxdepth 2 -type d -name build -exec rm -rf {} +",
+            "command": "find samples sketch -type d -name build -prune -exec rm -rf {} +",
 
             "dependsOn": [
                 "Loader: Clean"

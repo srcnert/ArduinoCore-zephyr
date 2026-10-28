@@ -96,8 +96,9 @@ which is public in this repository, so this does not provide secure boot.
 
 Entering serial recovery: `arduino-cli upload` first sends a 1200-bps touch to
 the board's USB port. A running sketch handles it (the core opens `Serial`
-before `setup()`); with no sketch on the board (or with a `--debug` loader) the
-loader handles it. A sketch that crashes before USB comes up leaves no port for
-the touch. In that case press the reset button, then press it again while the
-blue LED is on (500 ms): MCUboot stays in serial recovery and opens its own USB
-port; upload to that port. SWD is only needed when MCUboot itself is missing.
+before `setup()`); with no sketch on the board (or with a loader built with
+`-S debug`) the loader handles it. A sketch that crashes before USB comes up
+leaves no port for the touch. In that case press the reset button, then press
+it again while the blue LED is on (500 ms): MCUboot stays in serial recovery
+and opens its own USB port; upload to that port. SWD is only needed when
+MCUboot itself is missing.

@@ -36,7 +36,7 @@ jobs:
         id: setup
         run: |
           west init -l .
-          west config manifest.project-filter -- "-zephyr"
+          west config manifest.project-filter -- "-zephyr,-rzi"
           git fetch origin "$GITHUB_BASE_REF:$GITHUB_BASE_REF"
 
       - name: C/C++ formatting

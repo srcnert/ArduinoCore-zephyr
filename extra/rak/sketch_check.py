@@ -10,8 +10,10 @@ Usage:
     west rak-sketch-check -b rak4631            # pick another board
     west rak-sketch-check --baseboard rak19007  # pick a WisBlock base board
 
-Each direct subdirectory of sketch/ that contains a .ino file is
-compiled with 'arduino-cli compile -b rak:zephyr:<board>'. The base
+Each directory under sketch/ (at any depth, e.g. sketch/rzi/<name>)
+that holds a <name>.ino file is compiled with 'arduino-cli compile
+-b rak:zephyr:<board>' against the loader last built for that board,
+with or without the rzi snippet. The base
 board is passed as the 'baseboard' board option (menu.baseboard in
 boards.txt), which selects the WISBLOCK_BASE_* macro the sketches use.
 """
@@ -82,7 +84,8 @@ class SketchCheck(utils.CheckCommand):
 
         failed = []
         for sketch in sketches:
-            log.inf(f"--- {sketch.name} ---")
+            name = sketch.relative_to(SKETCH_DIR).as_posix()
+            log.inf(f"--- {name} ---")
             cmd = ["arduino-cli", "compile", "-b", fqbn, *options, str(sketch)]
             if args.verbose:
                 cmd.append("-v")
@@ -92,8 +95,8 @@ class SketchCheck(utils.CheckCommand):
                 log.err("arduino-cli not found. Please install it.")
                 log.die(utils.MSG_ERR)
             if result.returncode != 0:
-                log.err(f"Compilation failed: {sketch.name}")
-                failed.append(sketch.name)
+                log.err(f"Compilation failed: {name}")
+                failed.append(name)
 
         log.inf(
             f"Compiled {len(sketches)} sketch(es): "
@@ -105,9 +108,9 @@ class SketchCheck(utils.CheckCommand):
 
 
 def _find_sketches():
-    """Direct subdirectories of sketch/ containing a .ino file."""
+    """Directories under sketch/ holding a .ino file named after them."""
     if not SKETCH_DIR.is_dir():
         return []
     return sorted(
-        p for p in SKETCH_DIR.iterdir() if p.is_dir() and any(p.glob("*.ino"))
+        p.parent for p in SKETCH_DIR.rglob("*.ino") if p.stem == p.parent.name
     )
