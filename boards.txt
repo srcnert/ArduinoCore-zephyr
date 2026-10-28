@@ -762,6 +762,7 @@ nrf52840dk.menu.link_mode.static.upload.extension=bin-zsk.bin
 nrf52840dk.build.zephyr_target=nrf52840dk/nrf52840
 nrf52840dk.build.zephyr_args=--sysbuild
 nrf52840dk.build.zephyr_hals=hal_nordic
+nrf52840dk.build.zephyr_toolchain=arm-zephyr-eabi
 nrf52840dk.build.variant=nrf52840dk_nrf52840
 
 nrf52840dk.build.extra_flags=
