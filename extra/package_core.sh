@@ -22,13 +22,7 @@ ARTIFACT=$1
 VERSION=$2
 OUTPUT_FILE=${3:-distrib/${ARTIFACT}-${VERSION}.tar.bz2}
 
-log_msg() {
-	if [ -n $GITHUB_WORKSPACE ] ; then
-		echo "::$1::$2"
-	else
-		echo "$2"
-	fi
-}
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # we use variants for include because we filter on file paths
 # and boards for exclude because we want to remove matching lines in boards.txt
@@ -87,6 +81,21 @@ for variant in $INCLUDED_VARIANTS ; do
 		RET=3
 	fi
 done
+
+# deduplicate llext-edk headers shared by all included variants
+# (CI only: this modifies the working tree)
+if [ -n "$GITHUB_ACTIONS" ] ; then
+	EDK_VARIANTS=$(for v in $INCLUDED_VARIANTS ; do
+		if [ -d variants/$v/llext-edk/include ] ; then echo $v ; fi
+	done)
+	if [ $(echo $EDK_VARIANTS | wc -w) -ge 2 ] ; then
+		extra/dedupe_includes.py --common-dir include $EDK_VARIANTS
+	fi
+fi
+# shared headers, from the step above or from a synced deduplicated package
+if [ -d variants/include ] ; then
+	echo "variants/include/" >> ${TEMP_INC}
+fi
 
 # create the list of files and directories to exclude
 TEMP_EXC=$(mktemp -p . | sed 's/\.\///')

@@ -6,13 +6,7 @@
 set -e
 set -o pipefail
 
-log_msg() {
-	if [ -n "$GITHUB_WORKSPACE" ] ; then
-		echo "::$1::$2"
-	else
-		echo " - $2"
-	fi
-}
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 if [ ! -f platform.txt ]; then
   echo Launch this script from the root core folder as ./extra/bootstrap.sh
@@ -85,7 +79,7 @@ done | sort -V)
 for version in $(echo "$TOOLCHAIN_VERSIONS" | cut -d ' ' -f 1 | sort -u -V); do
   toolchains=$(echo "$TOOLCHAIN_VERSIONS" | awk -v v="$version" '$1 == v { print $2 }')
   log_msg "group" "Installing Zephyr SDK ${version}: ${toolchains}"
-  west sdk install --version "$version" -t $toolchains
+  west sdk install --version "$version" -t $toolchains $SDK_INSTALL_OPTS
   log_msg "endgroup"
 done
 

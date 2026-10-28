@@ -62,6 +62,7 @@ jobs:
         timeout-minutes: 5 # early error on Github network issues
         run: |
           sudo apt-get remove --purge man-db -y # skips the mandb triggers
+          sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt 2>/dev/null || true # unreliable mirror
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends git cmake wget python3-pip ninja-build
 
@@ -107,11 +108,34 @@ jobs:
         timeout-minutes: 10 # early error on Github network issues
         env:
           WEST_CACHE: ${{ runner.temp }}/west-cache
+          # not needed for building, dtc is installed in the build jobs
+          SDK_INSTALL_OPTS: --no-hosttools
         run: |
           # Install Zephyr as a core user would, but faster
           yes | ./extra/bootstrap.sh -o=--filter=tree:0
-          # Archive the build environment for later jobs
-          (cd && tar cphf - .cmake work zephyr-sdk-* | zstd > build-env.tar.zstd)
+          # Archive the build environment for later jobs. The .git folders of
+          # west projects are not needed for building: the information builds
+          # take from them is recorded here instead.
+          source venv/bin/activate
+          # - the Zephyr build version, stored in the west configuration;
+          ZEPHYR_BUILD_VERSION=$(git -C $(west list -f '{abspath}' zephyr) describe --abbrev=12 --always)
+          west config build.cmake-args -- "-DBUILD_VERSION=$ZEPHYR_BUILD_VERSION"
+          # - the manifests imported from other projects (Zephyr's provides its
+          #   west commands and modules), which west reads from their git data:
+          #   use a resolved copy of the manifest, which needs no imports;
+          west manifest --resolve --active-only > west-resolved.yml
+          west config manifest.file west-resolved.yml
+          # - the core version, passed to the build jobs by this one.
+          west list -f '{abspath}' | awk '{ print $1 "/.git" }' \
+            | sed "s|^$HOME/||" > ~/build-env.exclude
+          # the SDK host tools are not installed, skip their installer too
+          echo "zephyr-sdk-*/hosttools" >> ~/build-env.exclude
+          # Only archive the west workspace: the rest of ~/work belongs to the
+          # runner (including the west cache in runner.temp).
+          TOPDIR=$(realpath --relative-to=$HOME $(west topdir))
+          (cd && tar cphf - --exclude-from=build-env.exclude .cmake $TOPDIR zephyr-sdk-* \
+                | zstd -T0 -9 --long=27 > build-env.tar.zstd)
+          ls -lh ~/build-env.tar.zstd
 
       - name: Get ci-builds package index link
         if: ${{ github.repository == 'arduino/ArduinoCore-zephyr' }}
@@ -141,15 +165,17 @@ jobs:
         with:
           name: test-data
           path: test-data/
+          overwrite: true
           retention-days: 1
 
       - name: Archive build environment
         uses: actions/upload-artifact@v7
         with:
-          name: build-env
+          name: build-env.tar.zstd
           path: ~/build-env.tar.zstd
-          retention-days: 1
           archive: false
+          overwrite: true
+          retention-days: 1
 
 
 
@@ -168,6 +194,8 @@ jobs:
       CCACHE_IGNOREOPTIONS: -specs=*
       # build-specific name of the generated artifacts
       ARTIFACT_TAG: ${{ needs.build-env.outputs.CORE_HASH }}-${{ matrix.board }}
+      # the core .git folder is not archived, use the version computed by build-env
+      PINNED_CORE_VERSION: ${{ needs.build-env.outputs.CORE_VER }}
       # report file stem for this board
       REPORT: reports/zephyr-${{ matrix.variant }}
     strategy:
@@ -188,8 +216,9 @@ jobs:
         timeout-minutes: 5 # early error on Github network issues
         run: |
           sudo apt-get remove --purge man-db -y # skips the mandb triggers
+          sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt 2>/dev/null || true # unreliable mirror
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends git cmake wget python3-pip ninja-build ccache
+          sudo apt-get install -y --no-install-recommends git cmake wget python3-pip ninja-build ccache device-tree-compiler
           (cd ~ && tar --use-compress-program=unzstd -xpf build-env.tar.zstd && rm build-env.tar.zstd)
 
       - name: ccache
@@ -220,16 +249,18 @@ jobs:
           # look for warnings (errors are a happy path!)
           grep -i "warning:" $REPORT.stdout > $REPORT.warnings || true
 
-          # extract the memory usage table (from the header to the first non-% line)
-          # There is one table per image with sysbuild, so skip the MCUboot one.
+          # compute the memory usage from the linker map file
           # override the size of the Flash with the size of the loader partition
           # and add the size of the sketch partition (not reported by Zephyr)
           LOADER_SIZE=$(( $(cat variants/${{ matrix.variant }}/syms-static.ld | grep '_loader_max_size' | cut -d '=' -f 2 | tr -d ') ;') ))
           SKETCH_SIZE=$(( $(cat variants/${{ matrix.variant }}/syms-static.ld | grep '_sketch_max_size' | cut -d '=' -f 2 | tr -d ') ;') ))
-          cat $REPORT.stdout | awk '/^Memory region/ {t=""; f=1; next} f && /%/ {t=t $0 "\n"; next} f {f=0; if ($0 !~ /\/mcuboot\//) printf "%s", t}' \
-                             | awk 'BEGIN {split("B KB MB GB", u); for(i in u) m[u[i]]=1024^(i-1)} /:/ {print "[\"" $1 "\"," $2*m[$3] "," $4*m[$5] "]"}' \
-                             | sort \
-                             | jq -s "map((select(.[0] == \"FLASH:\") | .[2]) |= ${LOADER_SIZE}) + [ [ \"SKETCH:\", 0, ${SKETCH_SIZE} ] ]" > $REPORT.meminfo
+          BUILD_DIR=build/${{ matrix.variant }}/zephyr
+          [ -d build/${{ matrix.variant }}/loader/zephyr ] && BUILD_DIR=build/${{ matrix.variant }}/loader/zephyr
+          venv/bin/python3 extra/map_memusage.py --json $REPORT.memusage \
+                                  --set-max FLASH ${LOADER_SIZE} --set-max SKETCH ${SKETCH_SIZE} \
+                                  $BUILD_DIR/zephyr.map $BUILD_DIR/zephyr.elf
+          jq "to_entries | map([ .key + \":\", .value[0], .value[1] ]) | sort" $REPORT.memusage > $REPORT.meminfo
+          rm $REPORT.memusage
 
           # ccache stats update
           echo "::group::ccache stats after build"
@@ -246,8 +277,14 @@ jobs:
           ls reports/* >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-          # Prepare an archive of the built binaries (and build dir on failure)
-          [ "${{ job.status }}" == "failure" ] && FULL_BUILD_DIR="build/${{ matrix.variant }}/"
+          # Preprare an archive of the built binaries (and build dir on failure).
+          # Prefix the name with 'failed-' if the build failed, so that it is not removed.
+          BINARIES_FILE=binaries-${ARTIFACT_TAG}.tar.zstd
+          if [ "${{ job.status }}" == "failure" ] ; then
+            FULL_BUILD_DIR="build/${{ matrix.variant }}/"
+            BINARIES_FILE=failed-${BINARIES_FILE}
+          fi
+          echo "BINARIES_FILE=${BINARIES_FILE}" >> $GITHUB_ENV
           sed -e '/^#/d' boards.local.txt > boards.local_${{ matrix.variant }}.txt
           tar chf - \
             firmwares/*${{ matrix.variant }}* \
@@ -255,17 +292,17 @@ jobs:
             boards.local_${{ matrix.variant }}.txt \
             cores/arduino/api/ \
             ${FULL_BUILD_DIR} \
-          | zstd > binaries-${ARTIFACT_TAG}.tar.zstd
+          | zstd > ${BINARIES_FILE}
 
       - name: Archive board binaries
         if: ${{ steps.restore-env.outcome == 'success' && !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          # prefix the name with 'failed-' if the build failed, so that it is not removed
-          name: ${{ format('{0}binaries-{1}', (job.status == 'failure') && 'failed-' || '', env.ARTIFACT_TAG) }}
-          path: binaries-${{ env.ARTIFACT_TAG }}.tar.zstd
-          retention-days: 7 # for failed build inspection
+          name: ${{ env.BINARIES_FILE }}
+          path: ${{ env.BINARIES_FILE }}
           archive: false
+          overwrite: true
+          retention-days: 7 # for failed build inspection
 
       - name: Archive build reports
         if: ${{ steps.restore-env.outcome == 'success' && !cancelled() }}
@@ -273,6 +310,7 @@ jobs:
         with:
           name: build-report-${{ env.ARTIFACT_TAG }}
           path: ${{ env.REPORT_FILES }}
+          overwrite: true
           retention-days: 1
 
 
@@ -331,6 +369,7 @@ jobs:
           name: ${{ env.CORE_ARTIFACT }}
           path: distrib/${{ env.CORE_ARTIFACT }}
           archive: false
+          overwrite: true
 
       - name: Archive artifact ID
         run: |
@@ -340,6 +379,7 @@ jobs:
         with:
           name: artifact-id-${{ matrix.artifact }}
           path: ${{ matrix.artifact }}.id
+          overwrite: true
 
 
 
@@ -409,6 +449,7 @@ jobs:
           name: ${{ env.PACKAGE_INDEX_FILE }}
           path: ${{ env.PACKAGE_INDEX_FILE }}
           archive: false
+          overwrite: true
 
       - name: Display final URL in the summary
         run: |
@@ -540,6 +581,7 @@ jobs:
         with:
           name: test-report-${{ env.ARTIFACT_TAG }}
           path: sketches-reports/*
+          overwrite: true
           retention-days: 1
 
 
@@ -615,6 +657,7 @@ jobs:
         with:
           name: build-metadata
           path: build_info.json
+          overwrite: true
           retention-days: 1
 
       # upload comment request artifact (will be retrieved by leave_pr_comment.yml)
@@ -624,6 +667,7 @@ jobs:
         with:
           name: comment-request
           path: comment-request/
+          overwrite: true
           retention-days: 1
 
       # upload size delta report artifact (will be retrieved by report_size_deltas.yml)
@@ -633,6 +677,7 @@ jobs:
         with:
           name: sketches-reports
           path: sketches-reports/
+          overwrite: true
           retention-days: 1
 
       # upload new official test size artifact (for AWS storage)
@@ -640,19 +685,21 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ github.event_name == 'push' }}
         with:
-          name: size-reports
+          name: size-reports-${{ needs.build-env.outputs.CORE_HASH }}.tar.bz2
           path: size-reports-${{ needs.build-env.outputs.CORE_HASH }}.tar.bz2
-          retention-days: 1
           archive: false
+          overwrite: true
+          retention-days: 1
 
       # upload input set of build reports artifact (for CI debugging)
       - name: Archive input test reports
         uses: actions/upload-artifact@v7
         with:
-          name: build-reports
+          name: build-reports-${{ needs.build-env.outputs.CORE_HASH }}.tar.bz2
           path: build-reports-${{ needs.build-env.outputs.CORE_HASH }}.tar.bz2
-          retention-days: 1
           archive: false
+          overwrite: true
+          retention-days: 1
 
       # The last line makes the job fail if the 'result' file does not contain "PASSED".
       # No further actions are allowed in case of error.
@@ -775,6 +822,7 @@ jobs:
         with:
           name: snippets-${{ env.CORE_TAG }}
           path: snippets/
+          overwrite: true
 
 
 
