@@ -13,4 +13,25 @@ config RAK_RUI_API
 	  With this option disabled the core behaves like upstream
 	  ArduinoCore-zephyr and none of the RAK sources are compiled.
 
+config RAK_EXPORT_MATH
+	bool "Export the math.h functions to sketches"
+	default y
+	help
+	  Link the math.h functions into the loader and export them to
+	  sketches, like upstream ArduinoCore-zephyr.
+
+	  With this option disabled the loader leaves them out and every
+	  sketch links only the math functions it calls.
+
+config RAK_EXPORT_LIBC_EXTRAS
+	bool "Export mktime() and strerror_r() to sketches"
+	default y
+	help
+	  Link mktime() and the XSI strerror_r() used by std::error_code into
+	  the loader and export them to sketches, like upstream
+	  ArduinoCore-zephyr.
+
+	  With this option disabled the loader leaves them out and a sketch
+	  that calls one of them links its own copy.
+
 rsource "modules/Kconfig"
