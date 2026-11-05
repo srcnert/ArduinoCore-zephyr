@@ -786,6 +786,8 @@ nrf52840dk.bootloader.tool=mcumgr
 nrf52840dk.bootloader.tool.default=mcumgr
 nrf52840dk.bootloader.file=zephyr-{build.variant}.bin
 
+nrf52840dk.recipe.hooks.linking.postlink.2.pattern="{runtime.tools.llext-slid.path}/llext-slid" -config "{runtime.platform.path}/firmwares/zephyr-{build.variant}.config" "{build.path}/{build.project_name}.elf"
+
 ##########################################################################################
 
 rak4631.name=RAKwireless RAK4631
@@ -835,5 +837,7 @@ rak4631.upload.native_usb=true
 rak4631.bootloader.tool=mcumgr
 rak4631.bootloader.tool.default=mcumgr
 rak4631.bootloader.file=zephyr-{build.variant}.bin
+
+rak4631.recipe.hooks.linking.postlink.2.pattern="{runtime.tools.llext-slid.path}/llext-slid" -config "{runtime.platform.path}/firmwares/zephyr-{build.variant}.config" "{build.path}/{build.project_name}.elf"
 
 ##########################################################################################

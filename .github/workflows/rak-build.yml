@@ -120,6 +120,20 @@ jobs:
           arduino-cli lib install --git-url \
             "https://github.com/RAKWireless/RAK13800-W5100S.git#1.0.4"
 
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Build the llext-slid tool
+        # The official core does not ship it; sketch links need it to
+        # resolve the loader's exports by SLID.
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          (cd tools/llext-slid && go build)
+          echo 'runtime.tools.llext-slid.path={runtime.platform.path}/tools/llext-slid' \
+            >> platform.local.txt
+
       - name: Compile sketches
         working-directory: ${{ env.MODULE_PATH }}
         run: |
@@ -128,13 +142,15 @@ jobs:
           west rak-sketch-check -b nrf52840dk
           west rak-sketch-check -b rak4631 --baseboard rak19007
 
-      - name: Build the RZI loader and compile sketches
+      - name: Build the loader with rzi + opt snippets and compile sketches
         # Rebuilds the rak4631 loader with the rzi snippet (the only board
-        # it supports) so the RZI sketches compile their real code. Runs
-        # last because the RZI patches and the rebuild change what the
-        # steps above build and check.
+        # it supports) and the opt snippet, so the RZI sketches compile
+        # their real code against the SLID exports. The core's own patches
+        # go after the RZI ones. Runs last because the patches and the
+        # rebuild change what the steps above build and check.
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           west patch -sm rzi -l zephyr/patches_arduino.yml apply
-          ./extra/build.sh rak4631 -S rzi
+          west patch apply
+          ./extra/build.sh rak4631 -S rzi opt
           west rak-sketch-check -b rak4631 --baseboard rak19007
