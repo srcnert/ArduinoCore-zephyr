@@ -11,13 +11,15 @@ Usage:
     west rak-checkall -v                     # pass -v to every check
     west rak-checkall -q                     # only show output of failures
 
-The cppcheck lint and the sketch compilation run after the loader
-build, against that build's artifacts. The sample build is independent
-of the loader but just as heavy, so it runs last; --quick skips all
-four.
+The cppcheck lint and the sketch compilation run after the plain loader
+build, against that build's artifacts. On boards the rzi snippet
+supports, the loader is then rebuilt with the rzi and opt snippets and
+the sketches are compiled again. The sample build is independent of the
+loader but just as heavy, so it runs last; --quick skips all of these
+steps.
 
-Those four steps build one board at a time, selected with -b; every
-board defined in boards.txt works.
+These steps build one board at a time, selected with -b; every board
+defined in boards.txt works.
 """
 
 import subprocess
@@ -74,17 +76,22 @@ def _build_checks(board):
         build_dir += "/loader"
 
     build = ["./extra/build.sh", board]
-    label = board
-    if board in RZI_BOARDS:
-        build += ["-S", "rzi"]
-        label += ", rzi"
-
-    return [
-        (f"loader build ({label})", build),
+    sketches = ["west", "rak-sketch-check", "-b", board]
+    checks = [
+        (f"loader build ({board})", build),
         ("cppcheck static analysis", ["west", "rak-lint", "-b", build_dir]),
-        (f"sketch compilation ({label})", ["west", "rak-sketch-check", "-b", board]),
-        (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
+        (f"sketch compilation ({board})", sketches),
     ]
+    if board in RZI_BOARDS:
+        label = f"{board}, rzi, opt"
+        checks += [
+            (f"loader build ({label})", build + ["-S", "rzi", "opt"]),
+            (f"sketch compilation ({label})", sketches),
+        ]
+    checks.append(
+        (f"sample build ({target})", ["west", "rak-sample-check", "-b", target])
+    )
+    return checks
 
 
 class CheckAll(WestCommand):
