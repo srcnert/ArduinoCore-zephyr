@@ -17,6 +17,9 @@ import rak_utils as utils
 
 TARGET_EXTS = {".py"}
 
+# This is upstream file, because of that it is skipped from black check.
+SKIP_FILES = {"gen_provides.py"}
+
 
 class BlackCheck(utils.CheckCommand):
     def __init__(self):
@@ -27,7 +30,9 @@ class BlackCheck(utils.CheckCommand):
         )
 
     def do_run(self, args, unknown_args):
-        files, ignored = self.select_files(args.verbose, extensions=TARGET_EXTS)
+        files, ignored = self.select_files(
+            args.verbose, extensions=TARGET_EXTS, ignore_names=SKIP_FILES
+        )
 
         # Run black from west's own interpreter so PATH does not matter.
         # --quiet drops black's per-file cheering; failures are named by

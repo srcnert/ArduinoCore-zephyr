@@ -52,16 +52,41 @@ def get_all_syms(elf):
 
     return syms
 
+def is_llext_sym(elf, symbol):
+    # An export table entry. With CONFIG_LLEXT_EXPORT_BUILTINS_BY_SLID it holds
+    # a SLID instead of a name pointer, so the name comes from the symbol.
+    shndx = symbol['st_shndx']
+    return (symbol.name.startswith("__llext_sym_") and isinstance(shndx, int)
+            and elf.get_section(shndx).name == "llext_const_symbol_area")
+
+def get_llext_slids(elf):
+    # The SLID export table is sorted by SLID after the link, so the
+    # __llext_sym_* symbols no longer point at their own entry.
+    if not elf.get_section_by_name("llext_exports_strtab"):
+        return None
+    table = elf.get_section_by_name("llext_const_symbol_area")
+    start = table['sh_addr']
+    end = start + table['sh_size']
+    return {get_ptr_at(elf, addr): get_ptr_at(elf, addr + NativePtr.length)
+            for addr in range(start, end, 2 * NativePtr.length)}
+
+def get_llext_sym_value(elf, symbol, slids):
+    if slids is None:
+        return get_ptr_at(elf, symbol['st_value'] + NativePtr.length)
+    name = symbol.name[len("__llext_sym_"):]
+    slid = hashlib.sha256(name.encode('utf-8')).digest()[:NativePtr.length]
+    return slids.get(int.from_bytes(slid, 'big'))
+
 def get_llext_syms(elf):
     syms = {}
+    slids = get_llext_slids(elf)
     for section in elf.iter_sections():
         if not isinstance(section, SymbolTableSection):
             continue
         for symbol in section.iter_symbols():
-            if symbol.name.startswith("__llext_sym_"):
-                llext_sym_addr = symbol['st_value']
-                sym_name = get_str_at(elf, get_ptr_at(elf, llext_sym_addr))
-                sym_value = get_ptr_at(elf, llext_sym_addr + NativePtr.length)
+            if is_llext_sym(elf, symbol):
+                sym_name = symbol.name[len("__llext_sym_"):]
+                sym_value = get_llext_sym_value(elf, symbol, slids)
                 if sym_value:
                     syms[sym_name] = sym_value
 
@@ -192,6 +217,7 @@ def main():
             NativePtr = UNInt64("ptr")
 
         all_syms = get_all_syms(elf)
+        llext_slids = get_llext_slids(elf)
         out_syms = {}
         fail = False
 
@@ -210,11 +236,10 @@ def main():
                             and sym['st_info']['bind'] == 'STB_GLOBAL'):
                 comment = "public_fn"
                 value = sym['st_value']
-            elif args.llext and name.startswith("__llext_sym_"):
+            elif args.llext and is_llext_sym(elf, sym):
                 comment = "llext_sym"
-                llext_sym_addr = sym['st_value']
-                name = get_str_at(elf, get_ptr_at(elf, llext_sym_addr))
-                value = get_ptr_at(elf, llext_sym_addr + NativePtr.length)
+                value = get_llext_sym_value(elf, sym, llext_slids)
+                name = name[len("__llext_sym_"):]
 
             if name in deref_syms:
                 value = get_ptr_at(elf, value)
