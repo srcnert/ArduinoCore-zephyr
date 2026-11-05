@@ -120,9 +120,11 @@ W3(void *, memchr, const void *, int, size_t)
 W1(char *, strdup, const char *)
 W4(void *, memmem, const void *, size_t, const void *, size_t);
 
+#ifdef CONFIG_RAK_EXPORT_LIBC_EXTRAS
 /* XSI strerror_r (picolibc symbol). Keeps libstdc++'s std::error_code
  * message() path from bundling _strerror_r and its message table per sketch. */
 W3(int, __xpg_strerror_r, int, char *, size_t)
+#endif
 
 /* stdlib.h - conversion */
 W2(double, strtod, const char *, char **)
@@ -156,6 +158,7 @@ W1(int, isupper, int)
 W1(int, islower, int)
 W1(int, isxdigit, int)
 
+#ifdef CONFIG_RAK_EXPORT_MATH
 /* math.h - double */
 W1(double, acos, double)
 W1(double, asin, double)
@@ -184,6 +187,7 @@ W1(float, logf, float)
 W1(float, sinf, float)
 W1(float, sqrtf, float)
 W1(float, tanf, float)
+#endif
 
 #ifdef CONFIG_ARM
 /* ARM compiler ABI helpers: need to preserve all RTABI argument registers */
@@ -253,7 +257,9 @@ VN(__gnu_thumb1_case_si)
 /* stdio.h */
 W1(int, puts, const char *)
 W1(int, putchar, int)
+#if !defined(CONFIG_PICOLIBC) || defined(CONFIG_PICOLIBC_IO_FLOAT)
 W4(int, vsnprintf, char *, size_t, const char *, va_list)
+#endif
 
 /* time.h */
 W2(int, gettimeofday, struct timeval *, void *)
@@ -263,6 +269,11 @@ W2(int, gettimeofday, struct timeval *, void *)
 W2(int, getentropy, void *, size_t)
 #endif
 
+/*
+ * Without floating-point support in the loader's printf/scanf, leave the
+ * stdio forwarders out so the sketch links picolibc's own float-capable ones.
+ */
+#if !defined(CONFIG_PICOLIBC) || defined(CONFIG_PICOLIBC_IO_FLOAT)
 /*
  * Variadic stdio functions cannot be expressed with the tail-call wrapper
  * macros above. Provide explicit trampolines that capture the argument list
@@ -322,6 +333,7 @@ int vsprintf(char *str, const char *fmt, va_list ap) {
 int vsscanf(const char *str, const char *fmt, va_list ap) {
 	return __real_vsscanf(str, fmt, ap);
 }
+#endif
 
 /* stdlib.h - atexit */
 typedef void (*__atexit_fn)(void);
