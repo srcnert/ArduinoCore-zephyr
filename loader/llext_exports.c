@@ -68,10 +68,12 @@ EXPORT_LIBC_SYM(memchr);
 EXPORT_LIBC_SYM(strdup);
 EXPORT_LIBC_SYM(memmem);
 
+#ifdef CONFIG_RAK_EXPORT_LIBC_EXTRAS
 // XSI strerror_r: hoisted into the firmware so std::error_code/system_error in
 // network/TLS sketches import it instead of bundling _strerror_r per sketch.
 extern int __xpg_strerror_r(int, char *, size_t);
 EXPORT_LIBC_SYM(__xpg_strerror_r);
+#endif
 
 // stdlib.h
 EXPORT_LIBC_SYM(malloc);
@@ -106,6 +108,7 @@ EXPORT_LIBC_SYM(isupper);
 EXPORT_LIBC_SYM(islower);
 EXPORT_LIBC_SYM(isxdigit);
 
+#ifdef CONFIG_RAK_EXPORT_MATH
 // math.h
 EXPORT_LIBC_SYM(acos);
 EXPORT_LIBC_SYM(acosf);
@@ -132,6 +135,7 @@ EXPORT_LIBC_SYM(sqrtf);
 EXPORT_LIBC_SYM(tan);
 EXPORT_LIBC_SYM(tanf);
 EXPORT_LIBC_SYM(ldexp);
+#endif
 
 // stdio.h
 EXPORT_LIBC_SYM(puts);
@@ -357,7 +361,9 @@ EXPORT_LIBC_SYM(gettimeofday);
 
 EXPORT_SYMBOL(sys_clock_settime);
 
+#ifdef CONFIG_RAK_EXPORT_LIBC_EXTRAS
 EXPORT_SYMBOL(mktime);
+#endif
 EXPORT_SYMBOL(gmtime);
 
 /*

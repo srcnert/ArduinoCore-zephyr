@@ -1,0 +1,20 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+diff --git a/cmake/llext-edk.cmake b/cmake/llext-edk.cmake
+index afc2f09..4c3dfa8 100644
+--- a/cmake/llext-edk.cmake
++++ b/cmake/llext-edk.cmake
+@@ -147,11 +147,6 @@ endfunction()
+ # read in computed build configuration
+ import_kconfig(CONFIG ${PROJECT_BINARY_DIR}/.config)
+
+-if(CONFIG_LLEXT_EXPORT_BUILTINS_BY_SLID)
+-  message(FATAL_ERROR
+-    "The LLEXT EDK is not compatible with CONFIG_LLEXT_EXPORT_BUILTINS_BY_SLID.")
+-endif()
+-
+ set(build_flags_dir ${PROJECT_BINARY_DIR}/misc/llext_edk)
+ set(build_info_file ${PROJECT_BINARY_DIR}/../build_info.yml)
+ yaml_load(FILE ${build_info_file} NAME build_info)

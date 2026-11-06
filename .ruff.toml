@@ -9,3 +9,4 @@ line-length = 88
 # The west command scripts must adjust sys.path before importing their
 # shared rak_utils module, so imports cannot all sit at the top (E402).
 "extra/rak/*.py" = ["E402"]
+"extra/gen_provides.py" = ["F401", "F541"]
