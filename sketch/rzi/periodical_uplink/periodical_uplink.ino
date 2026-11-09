@@ -108,13 +108,13 @@ static void on_event(const struct rzi_lorawan_event *event, void *user_data) {
 		atomic_set(&joined, 0);
 		atomic_set(&join_done, 1);
 		break;
-	case RZI_LORAWAN_EVENT_TX_DONE:
+	case RZI_LORAWAN_EVENT_TXDONE:
 		if (!atomic_get(&tx_pending)) {
 			tx_event = event->tx;
 			atomic_set(&tx_pending, 1);
 		}
 		break;
-	case RZI_LORAWAN_EVENT_DOWNLINK:
+	case RZI_LORAWAN_EVENT_DOWNDATA:
 		if (!atomic_get(&dl_pending)) {
 			dl_event.port = event->downlink.port;
 			dl_event.size = MIN(event->downlink.size, sizeof(dl_event.data));
@@ -142,11 +142,11 @@ static const struct rzi_lorawan_callbacks callbacks = {
 
 static const char *tx_status_str(enum rzi_lorawan_tx_status status) {
 	switch (status) {
-	case RZI_LORAWAN_TX_SENT:
+	case RZI_LORAWAN_EVENT_TXDONE_SENT:
 		return "sent";
-	case RZI_LORAWAN_TX_ACKED:
+	case RZI_LORAWAN_EVENT_TXDONE_CONFIRMED:
 		return "acked";
-	case RZI_LORAWAN_TX_NOT_SENT:
+	case RZI_LORAWAN_EVENT_TXDONE_NOT_SENT:
 		return "not sent";
 	default:
 		return "unknown";
