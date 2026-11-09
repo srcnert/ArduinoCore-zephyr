@@ -18,8 +18,8 @@ manifest:
       url-base: https://github.com/facchinm
     - name: pillo79
       url-base: https://github.com/pillo79
-    - name: DanielCao0
-      url-base: https://github.com/DanielCao0
+    - name: RAKwireless
+      url-base: https://github.com/RAKWireless
 
   projects:
     - name: zephyr
@@ -61,8 +61,8 @@ manifest:
       revision: cf24edd66ab173d20f734e3f3350b1a1c053a904
 
     - name: rzi
-      remote: DanielCao0
-      revision: arduino/zephyr-v4.4.2
+      remote: RAKwireless
+      revision: dev/optional-certification
       path: modules/lib/rzi
       import:
         name-allowlist:
