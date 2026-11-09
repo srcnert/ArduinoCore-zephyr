@@ -57,6 +57,11 @@ void __attribute__((constructor)) SystemInit(void) {
 }
 #endif
 
+#if defined(CONFIG_SOC_SERIES_MPS2)
+/* The Arm MPS2 SoC has no CMSIS system file, the core clock is fixed */
+uint32_t SystemCoreClock = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
+#endif
+
 #if defined(CONFIG_BOARD_ARDUINO_NANO_CONNECT)
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>

@@ -139,14 +139,17 @@ mkdir -p venv/bin && touch venv/bin/activate  # create an empty venv placeholder
 ### Loader snippets
 
 List Zephyr snippets after `-S` to apply them to the loader: `debug`
-comes from `snippets/`, `rzi` from the RZI module. On sysbuild boards
+and `opt-rzi` come from `snippets/`, `rzi` from the RZI module. On sysbuild boards
 such as rak4631 they reach the loader image only, not MCUboot.
 
 ```shell
+west patch clean
 west patch -sm rzi clean
 west patch -sm rzi -l zephyr/patches_arduino.yml apply
+west patch apply
 ./extra/build.sh rak4631 -S debug      # shell, assertions, runtime stats
 ./extra/build.sh rak4631 -S debug rzi  # RZI (USP) LoRaWAN stack as well
+./extra/build.sh rak4631 -S rzi opt-rzi # smaller loader
 ```
 
 ## 4. Memory Footprint Reports
@@ -184,6 +187,28 @@ post-processing tools (`gen-rodata-ld`, `zephyr-sketch-tool`,
 `zephyr-check-size`) that the `{runtime.tools.*}` recipes in
 `platform.txt` resolve against.
 
+### Build the llext-slid and mcumgr tools (one time)
+
+The official core does not ship `llext-slid`, which sketch builds run
+after linking, or `mcumgr`, which uploads use. Build them locally with
+Go:
+
+```shell
+cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
+(cd tools/llext-slid && go build)
+(cd tools/mcumgr && go build)
+```
+
+`llext-slid` changes the sketch only when the loader was built with
+the `opt-rzi` snippet, which exports the loader's symbols by SLID
+(`CONFIG_LLEXT_EXPORT_BUILTINS_BY_SLID`). Point arduino-cli to both
+tools in `platform.local.txt`:
+
+```text
+runtime.tools.llext-slid.path={runtime.platform.path}/tools/llext-slid
+runtime.tools.mcumgr.path={runtime.platform.path}/tools/mcumgr
+```
+
 ### Optional: use the in-repo host tools without installing core
 
 To test the in-repo tools instead of the released binaries, build them
@@ -194,7 +219,6 @@ cd ~/rak-arduino-zephyr/ArduinoCore-zephyr
 (cd tools/zephyr-sketch-tool && go build)
 (cd tools/gen-rodata-ld && go build)
 (cd tools/zephyr-check-size && go build)
-(cd tools/mcumgr && go build)
 ```
 
 Each binary is produced inside its own tool directory
@@ -307,8 +331,9 @@ devicetree macros of that build. Changed files not compiled in that build
 override with `-b`). It needs the setup of section 5: a built loader
 (`./extra/build.sh <target>`), the in-repo host tools (`tools/*/go build`)
 and the `rak:zephyr` core registered with arduino-cli. In
-`west rak-checkall` it runs after the loader build, which uses `-S rzi`
-for `rak4631`. The `rak4631` builds without the snippet run in CI only.
+`west rak-checkall` it runs after the loader build without snippets, then
+again for `rak4631` after a rebuild with `-S rzi opt-rzi`. That rebuild
+needs the patches from "Loader snippets" in section 3 to be applied first.
 
 Every command prints a summary line
 (`Checked N file(s): X passed, Y failed - (Z ignored)`) and exits non-zero on
@@ -330,11 +355,12 @@ The checks run automatically on GitHub for every pull request targeting
   toolchain container and takes far longer than the checks. It then
   builds the Zephyr samples with `west rak-sample-check`, runs
   `west rak-lint` against the loader build's real headers, installs
-  arduino-cli and the pinned `arduino:zephyr_main` core, and compiles
-  the sketches in `sketch/` against that loader with
-  `west rak-sketch-check`. Finally it applies the RZI patches, rebuilds
-  the `rak4631` loader with the rzi snippet (`-S rzi`) and compiles the
-  sketches again.
+  arduino-cli and the pinned `arduino:zephyr_main` core, builds the
+  `llext-slid` tool, and compiles the sketches in `sketch/` against
+  that loader with `west rak-sketch-check`. Finally it applies the RZI
+  patches and then the core's own patches (`zephyr/patches.yml`),
+  rebuilds the `rak4631` loader with the rzi and opt-rzi snippets
+  (`-S rzi opt-rzi`) and compiles the sketches again.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every

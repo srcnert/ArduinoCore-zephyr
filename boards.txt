@@ -786,6 +786,8 @@ nrf52840dk.bootloader.tool=mcumgr
 nrf52840dk.bootloader.tool.default=mcumgr
 nrf52840dk.bootloader.file=zephyr-{build.variant}.bin
 
+nrf52840dk.recipe.hooks.linking.postlink.2.pattern="{runtime.tools.llext-slid.path}/llext-slid" -config "{runtime.platform.path}/firmwares/zephyr-{build.variant}.config" "{build.path}/{build.project_name}.elf"
+
 ##########################################################################################
 
 rak4631.name=RAKwireless RAK4631
@@ -835,5 +837,31 @@ rak4631.upload.native_usb=true
 rak4631.bootloader.tool=mcumgr
 rak4631.bootloader.tool.default=mcumgr
 rak4631.bootloader.file=zephyr-{build.variant}.bin
+
+rak4631.recipe.hooks.linking.postlink.2.pattern="{runtime.tools.llext-slid.path}/llext-slid" -config "{runtime.platform.path}/firmwares/zephyr-{build.variant}.config" "{build.path}/{build.project_name}.elf"
+
+##########################################################################################
+
+mps2_an386.name=Arm MPS2 AN386 (QEMU)
+mps2_an386.hide=true
+mps2_an386.build.core=arduino
+mps2_an386.build.crossprefix=arm-zephyr-eabi-
+mps2_an386.build.compiler_path={runtime.tools.arm-zephyr-eabi-1.0.1.path}/bin/
+
+mps2_an386.menu.debug.false=Standard
+mps2_an386.menu.debug.true=Debug
+mps2_an386.menu.debug.true.build.zsk_args.debug=-debug
+
+mps2_an386.build.zephyr_target=mps2/an386
+mps2_an386.build.zephyr_args=
+mps2_an386.build.zephyr_hals=cmsis_6
+mps2_an386.build.zephyr_toolchain=arm-zephyr-eabi
+mps2_an386.build.variant=mps2_an386
+
+mps2_an386.build.extra_flags=
+mps2_an386.build.postbuild.cmd="{tools.imgtool.path}/{tools.imgtool.cmd}" exit
+mps2_an386.build.board=MPS2_AN386
+
+mps2_an386.recipe.hooks.linking.postlink.2.pattern="{runtime.tools.llext-slid.path}/llext-slid" -config "{runtime.platform.path}/firmwares/zephyr-{build.variant}.config" "{build.path}/{build.project_name}.elf"
 
 ##########################################################################################

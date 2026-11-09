@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * The sketch partition lives on the simulated flash, whose storage is the
+ * last 512 KB of SRAM. With memory-region set, Zephyr does not erase it at
+ * boot, so QEMU can preload a sketch there (-device loader,addr=0x20380000).
+ * The flash node sits at the same address because the loader runs the
+ * sketch in place from DT_PARTITION_ADDR(user_sketch).
+ */
+/ {
+	sketch_sram: memory@20380000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		reg = <0x20380000 0x80000>;
+		zephyr,memory-region = "SketchFlash";
+	};
+};
+
+&sram0 {
+	reg = <0x20000000 0x380000>;
+};
+
+/delete-node/ &flash_sim0;
+
+&sim_flash_controller {
+	memory-region = <&sketch_sram>;
+
+	flash_sim0: flash_sim@20380000 {
+		compatible = "soc-nv-flash";
+		reg = <0x20380000 0x80000>;
+		erase-block-size = <1024>;
+		write-block-size = <4>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			user_sketch: partition@0 {
+				label = "user_sketch";
+				reg = <0x00000000 0x00078000>;
+			};
+
+			storage_partition: partition@78000 {
+				label = "storage";
+				reg = <0x00078000 0x00008000>;
+			};
+		};
+	};
+};
+
+/* Arduino API pin mappings */
+/ {
+	zephyr,user {
+		digital-pin-gpios = <&gpio0 0 0>,	/* D0 - GPIO0[0] */
+				    <&gpio0 1 0>,	/* D1 - GPIO0[1] */
+				    <&gpio0 2 0>,	/* D2 - GPIO0[2] */
+				    <&gpio0 3 0>,	/* D3 - GPIO0[3] */
+				    <&gpio0 4 0>,	/* D4 - GPIO0[4] */
+				    <&gpio0 5 0>,	/* D5 - GPIO0[5] */
+				    <&gpio0 6 0>,	/* D6 - GPIO0[6] */
+				    <&gpio0 7 0>,	/* D7 - GPIO0[7] */
+				    <&gpio0 8 0>,	/* D8 - GPIO0[8] */
+				    <&gpio0 9 0>,	/* D9 - GPIO0[9] */
+				    <&gpio0 10 0>,	/* D10 - GPIO0[10] */
+				    <&gpio0 11 0>,	/* D11 - GPIO0[11] */
+				    <&gpio0 12 0>,	/* D12 - GPIO0[12] */
+				    <&gpio0 13 0>,	/* D13 - GPIO0[13] */
+				    <&gpio0 14 0>,	/* D14 - GPIO0[14] */
+				    <&gpio0 15 0>,	/* D15 - GPIO0[15] */
+				    <&gpio_led0 0>,	/* D16 - USERLED0 */
+				    <&gpio_led0 1>,	/* D17 - USERLED1 */
+				    <&gpio_button 0>,	/* D18 - USERPB0 */
+				    <&gpio_button 1>;	/* D19 - USERPB1 */
+
+		serials = <&uart0>, <&uart1>; /* 'Serial' (zephyr,console), 'Serial1' */
+		i2cs = <&i2c_shield0>; /* 'Wire' */
+	};
+};
