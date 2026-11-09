@@ -140,7 +140,9 @@ EXPORT_LIBC_SYM(ldexp);
 // stdio.h
 EXPORT_LIBC_SYM(puts);
 EXPORT_LIBC_SYM(putchar);
+#if !defined(CONFIG_PICOLIBC) || defined(CONFIG_PICOLIBC_IO_FLOAT)
 EXPORT_LIBC_SYM(vsnprintf);
+#endif
 
 EXPORT_SYMBOL(k_malloc);
 EXPORT_SYMBOL(k_free);
@@ -366,6 +368,7 @@ EXPORT_SYMBOL(mktime);
 #endif
 EXPORT_SYMBOL(gmtime);
 
+#if !defined(CONFIG_PICOLIBC) || defined(CONFIG_PICOLIBC_IO_FLOAT)
 /*
  * Export the v* forms under __real_ names. The sketch core (llext_wrappers.c)
  * defines strong printf/sprintf/snprintf/sscanf trampolines that forward here,
@@ -375,6 +378,7 @@ EXPORT_SYMBOL(gmtime);
 EXPORT_LIBC_SYM(vprintf);
 EXPORT_LIBC_SYM(vsprintf);
 EXPORT_LIBC_SYM(vsscanf);
+#endif
 EXPORT_SYMBOL(cbvprintf);
 FORCE_EXPORT_SYM(__assert_no_args);
 EXPORT_SYMBOL(stdin);

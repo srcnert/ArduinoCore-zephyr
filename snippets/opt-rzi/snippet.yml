@@ -2,6 +2,6 @@
 # Author: sercan.erat@rakwireless.com
 # SPDX-License-Identifier: Apache-2.0
 
-name: opt
+name: opt-rzi
 append:
-  EXTRA_CONF_FILE: opt.conf
+  EXTRA_CONF_FILE: opt-rzi.conf

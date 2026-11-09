@@ -13,7 +13,7 @@ Usage:
 
 The cppcheck lint and the sketch compilation run after the plain loader
 build, against that build's artifacts. On boards the rzi snippet
-supports, the loader is then rebuilt with the rzi and opt snippets and
+supports, the loader is then rebuilt with the rzi and opt-rzi snippets and
 the sketches are compiled again. The sample build is independent of the
 loader but just as heavy, so it runs last; --quick skips all of these
 steps.
@@ -83,9 +83,9 @@ def _build_checks(board):
         (f"sketch compilation ({board})", sketches),
     ]
     if board in RZI_BOARDS:
-        label = f"{board}, rzi, opt"
+        label = f"{board}, rzi, opt-rzi"
         checks += [
-            (f"loader build ({label})", build + ["-S", "rzi", "opt"]),
+            (f"loader build ({label})", build + ["-S", "rzi", "opt-rzi"]),
             (f"sketch compilation ({label})", sketches),
         ]
     checks.append(

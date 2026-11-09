@@ -16,6 +16,6 @@ patches:
     apply-command: git apply
     comments: |
       Let the llext-edk target run with CONFIG_LLEXT_EXPORT_BUILTINS_BY_SLID
-      (snippets/opt). The EDK only provides headers and flags, which ignore
+      (snippets/opt-rzi). The EDK only provides headers and flags, which ignore
       SLID under LL_EXTENSION_BUILD; sketch links inject the SLIDs with
       tools/llext-slid (platform.txt).
