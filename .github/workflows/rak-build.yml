@@ -43,6 +43,11 @@ jobs:
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: "url.https://x-access-token:${{ secrets.RZI_TOKEN }}@github.com/\
+            RAKWireless/rzi.insteadOf"
+          GIT_CONFIG_VALUE_0: https://github.com/RAKWireless/rzi
         with:
           app-path: ${{ env.MODULE_PATH }}
           toolchains: arm-zephyr-eabi
