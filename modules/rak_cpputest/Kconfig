@@ -1,0 +1,14 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+config RAK_CPPUTEST
+	bool "CppUTest unit test framework for sketches"
+	depends on CPP
+	depends on LLEXT
+	select REQUIRES_FULL_LIBC
+	select REQUIRES_FLOAT_PRINTF
+	help
+	  Build CppUTest from the west project in modules/lib/cpputest into
+	  the loader and export it, so that a sketch can include
+	  cpputest_sketch.h and contain only its TEST() cases.
