@@ -14,6 +14,10 @@
 
 #include <Arduino.h>
 
+extern "C" {
+#include <zephyr/debug/gcov.h>
+}
+
 static void cpputest_serial_puts(const char *str, PlatformSpecificFile) {
 	Serial.print(str);
 }
@@ -30,6 +34,11 @@ void setup() {
 	int failures = CommandLineTestRunner::RunAllTests(3, args);
 
 	Serial.println(failures == 0 ? "PROJECT EXECUTION SUCCESSFUL" : "PROJECT EXECUTION FAILED");
+
+	// Twister reads the coverage data from the console after the result line;
+	// empty without CONFIG_COVERAGE. Serial.flush() never returns on mps2/an386.
+	delay(100);
+	gcov_coverage_dump();
 }
 
 void loop() {

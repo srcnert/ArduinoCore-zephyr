@@ -223,7 +223,7 @@
             "command": "west",
             "args": [
                 "twister",
-                "-T", "test",
+                "-T", "test/unit",
                 "-p", "${BOARD_WEST}",
                 "-x", "RAK_BOARD=${BOARD_ARD}",
                 "-x", "RAK_VARIANT=${VARIANT}"
@@ -232,6 +232,21 @@
             "dependsOn": [
                 "Clean",
                 "Loader: Build"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: Coverage (Twister)",
+            "type": "shell",
+            "command": "west",
+            "args": [
+                "twister",
+                "-T", "test/coverage",
+                "-p", "mps2/an386",
+                "--coverage",
+                "--coverage-tool", "gcovr",
+                "--gcov-tool", "${config:ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcov",
+                "--coverage-basedir", "cores"
             ],
             "problemMatcher": []
         },

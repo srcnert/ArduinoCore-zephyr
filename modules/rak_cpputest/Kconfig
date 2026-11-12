@@ -5,7 +5,6 @@
 config RAK_CPPUTEST
 	bool "CppUTest unit test framework for sketches"
 	depends on CPP
-	depends on LLEXT
 	select REQUIRES_FULL_LIBC
 	select REQUIRES_FLOAT_PRINTF
 	help

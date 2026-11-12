@@ -4,4 +4,4 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 project(arduino_cpputest NONE)
-include(../../extra/rak/twister.cmake)
+include(../../../extra/rak/twister.cmake)
