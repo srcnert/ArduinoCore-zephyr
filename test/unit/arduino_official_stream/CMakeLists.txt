@@ -2,5 +2,6 @@
 # Author: sercan.erat@rakwireless.com
 # SPDX-License-Identifier: Apache-2.0
 
-tests:
-  rak.arduino_api_official: {}
+cmake_minimum_required(VERSION 3.20.0)
+project(arduino_official_stream NONE)
+include(../../../extra/rak/twister.cmake)

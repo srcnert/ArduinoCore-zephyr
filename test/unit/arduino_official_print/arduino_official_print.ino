@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The official ArduinoCore-API unit tests, converted from Catch2 to CppUTest; the TEST()s are in
-// the .cpp files
+// The official ArduinoCore-API Print tests, converted from Catch2 to CppUTest; the TEST()s are
+// in the .cpp files
 
 #include <cpputest_sketch.h>
