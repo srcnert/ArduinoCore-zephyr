@@ -18,11 +18,20 @@
             "BOARD_OPTIONS": ",baseboard=rak19007",
             "DEVICE": "nrf52840",
             // ------------------------------------ //
+            // "BOARD_ARD": "mps2_an386",
+            // "BOARD_WEST": "mps2/an386",
+            // "VARIANT": "mps2_an386",
+            // "BOARD_OPTIONS": "",
+            // "DEVICE": "",
+            // ------------------------------------ //
             // "SKETCH": "sketch/arduino_blinky",
-            "SKETCH": "sketch/rzi/periodical_uplink",
+            // "SKETCH": "sketch/rzi/periodical_uplink",
+            "SKETCH": "test/arduino_cpputest",
             "SKETCH_DEBUG": "false",
+            // ------------------------------------ //
             "SAMPLE": "samples/blinky_arduino",
-            "SERIAL_PORT": "/dev/cu.usbmodem1101"
+            // ------------------------------------ //
+            "SERIAL_PORT": "/dev/cu.usbmodem101"
         },
         "cwd": "${workspaceFolder}"
     },
@@ -43,8 +52,10 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "-S", "rzi",
+                "-S", "rzi", "opt-rzi", "cpputest"
+                // "-S", "rzi", "opt-rzi"
                 // "-S", "rzi", "debug"
+                // "-S", "rzi"
             ],
             "group": "build",
             "problemMatcher": ["$gcc"]
@@ -58,7 +69,6 @@
                 "-d", "build/${VARIANT}",
                 "-r", "jlink",
                 "--no-rebuild",
-                "--erase",
                 "--reset"
             ],
             "problemMatcher": []
@@ -134,6 +144,12 @@
             "problemMatcher": []
         },
         {
+            "label": "Sketch: Run (QEMU)",
+            "type": "shell",
+            "command": "qemu-system-arm -machine mps2-an386 -cpu cortex-m4 -nographic -kernel build/${VARIANT}/zephyr/zephyr.bin -device loader,file=${SKETCH}/build/rak.zephyr.${BOARD_ARD}/$(basename ${SKETCH}).ino.elf-zsk.bin,addr=0x20380000",
+            "problemMatcher": []
+        },
+        {
             "label": "Sketch: Upload (mcumgr)",
             "type": "shell",
             "command": "arduino-cli",
@@ -182,15 +198,78 @@
             "problemMatcher": []
         },
         {
-            "label": "All",
+            "label": "Build All",
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Loader: Clean",
                 "Sketch: Clean",
                 "Loader: Build",
-                "Loader: Flash (J-Link)",
                 "Sketch: Build",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Flash All",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Loader: Flash (J-Link)",
                 "Sketch: Flash (pyOCD)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: Run (Twister)",
+            "type": "shell",
+            "command": "west",
+            "args": [
+                "twister",
+                "-T", "test/unit",
+                "-p", "${BOARD_WEST}",
+                "-x", "RAK_BOARD=${BOARD_ARD}",
+                "-x", "RAK_VARIANT=${VARIANT}"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean",
+                "Loader: Build"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: Run on board (Twister)",
+            "type": "shell",
+            "command": "west",
+            "args": [
+                "twister",
+                "-T", "test/unit",
+                "-p", "${BOARD_WEST}",
+                "-x", "RAK_BOARD=${BOARD_ARD}",
+                "-x", "RAK_VARIANT=${VARIANT}",
+                "--device-testing",
+                "--device-serial", "${SERIAL_PORT}",
+                "--flash-before",
+                "--flash-command", "extra/rak/twister_flash.sh,${DEVICE},0x80000"
+            ],
+            // "dependsOrder": "sequence",
+            // "dependsOn": [
+            //     "Clean",
+            //     "Loader: Build",
+            //     "Loader: Flash (J-Link)"
+            // ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: Coverage (Twister)",
+            "type": "shell",
+            "command": "west",
+            "args": [
+                "twister",
+                "-T", "test/coverage",
+                "-p", "mps2/an386",
+                "--coverage",
+                "--coverage-tool", "gcovr",
+                "--gcov-tool", "${config:ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcov",
+                "--coverage-basedir", "cores"
             ],
             "problemMatcher": []
         },
@@ -199,7 +278,7 @@
             "type": "shell",
 
             "dependsOrder": "sequence",
-            "command": "find samples sketch -type d -name build -prune -exec rm -rf {} +",
+            "command": "find samples sketch test -type d -name build -prune -exec rm -rf {} + && find . -maxdepth 1 -name 'twister-out*' -exec rm -rf {} +",
 
             "dependsOn": [
                 "Loader: Clean"
