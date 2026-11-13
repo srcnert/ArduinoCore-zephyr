@@ -60,7 +60,7 @@ TEST(String, from_number) {
 }
 
 TEST(String, construct) {
-	STRCMP_EQUAL("Hel", String("Hello", 3).c_str());
+	STRCMP_EQUAL("He", String("Hello", 2).c_str());
 	STRCMP_EQUAL("Q", String('Q').c_str());
 	STRCMP_EQUAL("c8", String((unsigned char)200, HEX).c_str());
 	STRCMP_EQUAL("ffff", String(65535u, HEX).c_str());

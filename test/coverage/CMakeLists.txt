@@ -19,6 +19,8 @@ target_sources(app PRIVATE main.cpp ${test_sources})
 
 # As in the sketch build (loader/CMakeLists.txt, platform.txt)
 target_compile_definitions(app PRIVATE _XOPEN_SOURCE=700 _GNU_SOURCE)
-target_include_directories(app PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../cores/arduino/api/deprecated-avr-comp)
+target_include_directories(app PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../../cores/arduino/api/deprecated-avr-comp
+)
 
 zephyr_compile_options(-Wno-unused-variable -Wno-comment)

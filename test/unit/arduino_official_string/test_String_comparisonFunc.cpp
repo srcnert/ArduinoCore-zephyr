@@ -77,7 +77,7 @@ TEST(String_comparisonFunc, equalsIgnoreCase_05) {
 }
 
 TEST(String_comparisonFunc, equalsIgnoreCase_06) {
-	arduino::String str1("Hello"), str2("Hel");
+	arduino::String str1("Hello"), str2("Hel"); // codespell:ignore
 	CHECK_FALSE(str1.equalsIgnoreCase(str2));
 }
 
