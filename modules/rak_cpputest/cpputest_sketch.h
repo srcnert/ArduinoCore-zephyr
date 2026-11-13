@@ -27,6 +27,8 @@ void setup() {
 	// USB serial drops output until the host opens the port
 	while (!Serial) {
 	}
+	// Twister clears its input buffer up to 100 ms after opening the port
+	delay(1000);
 	PlatformSpecificFPuts = cpputest_serial_puts;
 
 	// -b runs the tests in the order they are written
