@@ -2,7 +2,7 @@
 # Author: sercan.erat@rakwireless.com
 # SPDX-License-Identifier: Apache-2.0
 
-checkout-command: git checkout -- cmake/llext-edk.cmake
+checkout-command: git checkout -- cmake/llext-edk.cmake scripts/pylib/twister/twisterlib/handlers.py
 clean-command: ""
 
 patches:
@@ -19,3 +19,15 @@ patches:
       (snippets/opt-rzi). The EDK only provides headers and flags, which ignore
       SLID under LL_EXTENSION_BUILD; sketch links inject the SLIDs with
       tools/llext-slid (platform.txt).
+  - path: zephyr/0002-twister-match-serial-port-by-device-path.patch
+    sha256sum: 6495ecad41fb1dd4c4781fcde4fc4acc6261553f632e0509d05cf84ffbd7a397
+    module: zephyr
+    author: Sercan Erat
+    email: sercan.erat@rakwireless.com
+    date: 2026-11-13
+    upstreamable: true
+    apply-command: git apply
+    comments: |
+      With --flash-before, Twister waits for the serial port by comparing the
+      full path with the bare port names from list_ports.comports(), which never match,
+      so every test waits the full 10+ s timeout before opening the port.

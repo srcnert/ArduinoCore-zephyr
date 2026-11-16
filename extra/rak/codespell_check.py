@@ -38,7 +38,7 @@ BINARY_SUFFIXES = {
     ".zip",
 }
 
-IGNORE_WORDS = ["rsource"]
+IGNORE_WORDS = ["rsource", "ser"]
 
 
 class CodespellCheck(utils.CheckCommand):

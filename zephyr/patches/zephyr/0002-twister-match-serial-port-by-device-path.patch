@@ -1,0 +1,17 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+diff --git a/scripts/pylib/twister/twisterlib/handlers.py b/scripts/pylib/twister/twisterlib/handlers.py
+index 9686ede..ed6a884 100755
+--- a/scripts/pylib/twister/twisterlib/handlers.py
++++ b/scripts/pylib/twister/twisterlib/handlers.py
+@@ -787,7 +787,7 @@ class DeviceHandler(Handler):
+                     # declare new start time instead of using existing one start_time.
+                     serial_wait_timeout = max(10, int(flash_timeout * 0.2))
+                     flash_start_time = time.time()
+-                    while ser.port not in (p.name for p in list_ports.comports()):
++                    while ser.port not in (p.device for p in list_ports.comports()):
+                         time.sleep(0.1)
+                         if time.time() - flash_start_time > serial_wait_timeout:
+                             break
