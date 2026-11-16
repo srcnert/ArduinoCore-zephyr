@@ -421,8 +421,6 @@ EXPORT_SYMBOL(ring_buf_peek);
 EXPORT_SYMBOL(ring_buf_put);
 #endif
 
-EXPORT_SYMBOL(sys_clock_cycle_get_32);
-
 #ifdef CONFIG_ARM
 /* ARM compiler ABI helpers: exported as __real_##name for VN() trampolines in llext_wrappers.c */
 /* thread pointer access */
