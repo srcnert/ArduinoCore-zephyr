@@ -57,7 +57,7 @@ manifest:
 
     - name: rzi
       remote: RAKwireless
-      revision: dev/optional-certification
+      revision: arduino/zephyr-v4.5.0
       path: modules/lib/rzi
       import:
         name-allowlist:
