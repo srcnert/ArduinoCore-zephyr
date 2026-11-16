@@ -7,12 +7,24 @@
 get_filename_component(sketch_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(firmware ${CMAKE_CURRENT_LIST_DIR}/../../firmwares/zephyr-${RAK_VARIANT})
 
+foreach(var RAK_BOARD RAK_VARIANT)
+  if(NOT ${var})
+    message(FATAL_ERROR "${var} is not set; run twister with -x ${var}=<value>")
+  endif()
+endforeach()
+
+if(NOT EXISTS ${firmware}.config)
+  message(FATAL_ERROR "${firmware}.config not found; "
+                      "build the loader first: extra/build.sh ${RAK_BOARD} -S cpputest")
+endif()
+
 # Twister reads zephyr/.config after every CMake run and, with the
 # default harness, the ELF in zephyr/ after the build
 configure_file(${firmware}.config zephyr/.config COPYONLY)
 
 add_custom_target(sketch ALL
   COMMAND arduino-cli compile -b rak:zephyr:${RAK_BOARD} --warnings more
+          --library ${CMAKE_CURRENT_LIST_DIR}/../../test/unit/common
           --build-path sketch ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy sketch/${sketch_name}.ino.elf zephyr/
 )

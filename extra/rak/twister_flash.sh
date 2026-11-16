@@ -10,7 +10,7 @@
 # Usage: --flash-command extra/rak/twister_flash.sh,<pyocd_target>,<sketch_address>
 # Twister puts --build-dir <dir> (and --board-id <id>) before these two.
 
-set -e
+set -eu
 
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -20,4 +20,9 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-pyocd load -t "$1" -a "$2" "$build_dir"/sketch/*.ino.elf-zsk.bin
+[ -n "${build_dir:-}" ] || { echo "no --build-dir in: $*" >&2; exit 1; }
+
+sketch=("$build_dir"/sketch/*.ino.elf-zsk.bin)
+[ -f "${sketch[0]}" ] || { echo "sketch binary not found in $build_dir/sketch" >&2; exit 1; }
+
+pyocd load -t "$1" -a "$2" "${sketch[0]}"
