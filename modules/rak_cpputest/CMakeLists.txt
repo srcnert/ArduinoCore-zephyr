@@ -2,9 +2,9 @@
 # Author: sercan.erat@rakwireless.com
 # SPDX-License-Identifier: Apache-2.0
 
-set(CPPUTEST_DIR ${ZEPHYR_BASE}/../modules/lib/cpputest)
+set(CPPUTEST_DIR ${WEST_TOPDIR}/modules/lib/cpputest)
 
-file(GLOB CPPUTEST_SOURCES
+file(GLOB CPPUTEST_SOURCES CONFIGURE_DEPENDS
   ${CPPUTEST_DIR}/src/CppUTest/*.cpp
   ${CPPUTEST_DIR}/src/Platforms/Gcc/*.cpp
 )
