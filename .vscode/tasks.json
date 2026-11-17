@@ -25,8 +25,8 @@
             // "DEVICE": "",
             // ------------------------------------ //
             // "SKETCH": "sketch/arduino_blinky",
-            // "SKETCH": "sketch/rzi/periodical_uplink",
-            "SKETCH": "test/arduino_cpputest",
+            "SKETCH": "sketch/rzi/periodical_uplink",
+            // "SKETCH": "test/arduino_cpputest",
             "SKETCH_DEBUG": "false",
             // ------------------------------------ //
             "SAMPLE": "samples/blinky_arduino",
@@ -52,8 +52,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "-S", "rzi", "opt-rzi", "cpputest"
-                // "-S", "rzi", "opt-rzi"
+                // "-S", "rzi", "opt-rzi", "cpputest"
+                "-S", "rzi", "opt-rzi"
                 // "-S", "rzi", "debug"
                 // "-S", "rzi"
             ],

@@ -278,7 +278,7 @@ void setup() {
 		Serial.print("Retrying join in ");
 		Serial.print(RETRY_DELAY_MS / 1000);
 		Serial.println(" s");
-		(void)rzi_lorawan_leave();
+		check("Leave", rzi_lorawan_leave());
 		delay(RETRY_DELAY_MS);
 	}
 	k_work_cancel_delayable(&blink_work);

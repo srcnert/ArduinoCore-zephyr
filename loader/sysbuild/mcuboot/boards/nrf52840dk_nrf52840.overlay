@@ -20,6 +20,7 @@
 	board_cdc_acm_mcuboot: board_cdc_acm_mcuboot {
 		compatible = "zephyr,cdc-acm-uart";
 		status = "okay";
+		rx-fifo-size = <4096>;
 	};
 };
 

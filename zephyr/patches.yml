@@ -7,7 +7,7 @@ clean-command: ""
 
 patches:
   - path: zephyr/0001-llext-edk-allow-slid-exports.patch
-    sha256sum: 6e5ec84ae2d22a04e53f54c3dc3bf56f196a55a8d33e61ca8b652bdade66ea7c
+    sha256sum: f7d68e73a369cf2c577f40ef4974629eecad8c8399dc207f73c8033fcdacbbac
     module: zephyr
     author: Sercan Erat
     email: sercan.erat@rakwireless.com
