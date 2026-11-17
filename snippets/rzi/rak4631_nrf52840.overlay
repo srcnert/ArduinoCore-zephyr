@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/usp/sx126x.h>
+
+/ {
+	chosen {
+		zephyr,lorawan-transceiver = &lora;
+		lora-basics-modem-context-partition = &lora_context_partition;
+	};
+};
+
+/*
+ * ArduinoCore-zephyr places storage_partition at 0xf8000 (32 KB), matching
+ * rak4631-rzi-partitions.dtsi. Reserve the last 8 KB for the LoRa Basics
+ * Modem context so direct flash writes do not corrupt NVS settings.
+ */
+/delete-node/ &storage_partition;
+
+&flash0 {
+	partitions {
+		storage_partition: partition@f8000 {
+			compatible = "zephyr,mapped-partition";
+			label = "storage";
+			reg = <0x000f8000 0x00006000>;
+		};
+
+		lora_context_partition: partition@fe000 {
+			compatible = "zephyr,mapped-partition";
+			label = "lora_context";
+			reg = <0x000fe000 0x00002000>;
+		};
+	};
+};
+
+&lora {
+	compatible = "semtech,sx1262-new";
+	/delete-property/ rx-enable-gpios;
+	/delete-property/ dio2-tx-enable;
+	/delete-property/ dio3-tcxo-voltage;
+	/delete-property/ tcxo-power-startup-delay-ms;
+	reg = <0>;
+	reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+	busy-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+	dio1-gpios = <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+	dio2-as-rf-switch;
+	dio3-as-tcxo-control;
+	tcxo-voltage = <SX126X_TCXO_SUPPLY_3_3V>;
+	tcxo-wakeup-time = <5>;
+	reg-mode = <SX126X_REG_MODE_DCDC>;
+	/* SX1262 PA table, one entry per dBm from -9 to 22. */
+	tx-power-cfg = <(1) 0x01 0x01>,
+		       <(4) 0x00 0x01>,
+		       <(4) 0x01 0x01>,
+		       <(7) 0x00 0x01>,
+		       <(2) 0x00 0x02>,
+		       <(7) 0x03 0x01>,
+		       <(8) 0x03 0x01>,
+		       <(9) 0x03 0x01>,
+		       <(13) 0x00 0x01>,
+		       <(16) 0x00 0x01>,
+		       <(19) 0x00 0x01>,
+		       <(20) 0x00 0x01>,
+		       <(18) 0x03 0x01>,
+		       <(21) 0x00 0x01>,
+		       <(16) 0x00 0x02>,
+		       <(22) 0x00 0x01>,
+		       <(22) 0x01 0x01>,
+		       <(22) 0x02 0x01>,
+		       <(22) 0x03 0x01>,
+		       <(22) 0x04 0x01>,
+		       <(22) 0x00 0x02>,
+		       <(22) 0x01 0x02>,
+		       <(22) 0x02 0x02>,
+		       <(22) 0x03 0x02>,
+		       <(22) 0x01 0x03>,
+		       <(22) 0x02 0x03>,
+		       <(22) 0x00 0x05>,
+		       <(22) 0x01 0x05>,
+		       <(22) 0x02 0x05>,
+		       <(22) 0x03 0x06>,
+		       <(22) 0x04 0x06>,
+		       <(22) 0x04 0x07>;
+	spi-max-frequency = <1000000>;
+};
+
+&gpio1 {
+	rf_power: rf-power {
+		gpio-hog;
+		gpios = <5 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};
+
+	rf_control: rf-control {
+		gpio-hog;
+		gpios = <7 GPIO_ACTIVE_HIGH>;
+		input;
+	};
+};
