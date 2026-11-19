@@ -108,7 +108,8 @@ void arduino::ZephyrSerial::IrqHandler() {
 	}
 
 	key = k_spin_lock(&tx.lock);
-	if (ring_buf_size_get(&tx.ringbuf) == 0) {
+	if (ring_buf_size_get(&tx.ringbuf) == 0 && (!flushing || uart_irq_tx_complete(uart))) {
+		flushing = false;
 		uart_irq_tx_disable(uart);
 	}
 	k_spin_unlock(&tx.lock, key);
@@ -206,16 +207,9 @@ size_t arduino::ZephyrSerial::write(const uint8_t *buffer, size_t size) {
 }
 
 void arduino::ZephyrSerial::flush() {
-	while (true) {
-		k_spinlock_key_t key = k_spin_lock(&tx.lock);
-		bool empty = ring_buf_is_empty(&tx.ringbuf);
-		k_spin_unlock(&tx.lock, key);
-		if (empty) {
-			break;
-		}
-		k_yield();
-	}
-	while (uart_irq_tx_complete(uart) == 0) {
+	flushing = true;
+	uart_irq_tx_enable(uart);
+	while (flushing) {
 		k_yield();
 	}
 }

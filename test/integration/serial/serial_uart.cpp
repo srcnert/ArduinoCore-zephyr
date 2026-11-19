@@ -125,8 +125,6 @@ static void check_printf(ZephyrSerial &tx, ZephyrSerial &rx) {
 	STRCMP_EQUAL("1234 -56 FF 3.25", rx.readStringUntil('\n').c_str());
 }
 
-// Never returns on the nRF UARTE: the IRQ handler disables the TX IRQ once the
-// TX buffer is empty, and uart_irq_tx_complete() stays 0 from then on
 static void check_flush(ZephyrSerial &tx, ZephyrSerial &rx) {
 	write_pattern(tx, 512);
 	tx.flush();
@@ -276,7 +274,7 @@ TEST(Serial1, printf) {
 	check_printf(tx, rx);
 }
 
-IGNORE_TEST(Serial1, flush) {
+TEST(Serial1, flush) {
 	check_flush(tx, rx);
 }
 
@@ -350,7 +348,7 @@ TEST(Serial2, printf) {
 	check_printf(tx, rx);
 }
 
-IGNORE_TEST(Serial2, flush) {
+TEST(Serial2, flush) {
 	check_flush(tx, rx);
 }
 
