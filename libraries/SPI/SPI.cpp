@@ -6,6 +6,7 @@
 
 #include "SPI.h"
 #include <zephyr/kernel.h>
+#include <zephyr/sys/byteorder.h>
 
 arduino::ZephyrSPI::ZephyrSPI(const struct device *spi) : spi_dev(spi) {
 }
@@ -19,11 +20,12 @@ uint8_t arduino::ZephyrSPI::transfer(uint8_t data) {
 }
 
 uint16_t arduino::ZephyrSPI::transfer16(uint16_t data) {
-	uint16_t rx = data;
-	if (transfer(&rx, sizeof(rx), &config16) < 0) {
+	bool lsb = config.operation & SPI_TRANSFER_LSB;
+	uint16_t rx = lsb ? sys_cpu_to_le16(data) : sys_cpu_to_be16(data);
+	if (transfer(&rx, sizeof(rx), &config) < 0) {
 		return 0;
 	}
-	return rx;
+	return lsb ? sys_le16_to_cpu(rx) : sys_be16_to_cpu(rx);
 }
 
 void arduino::ZephyrSPI::transfer(void *buf, size_t count) {
