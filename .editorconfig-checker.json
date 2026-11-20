@@ -15,6 +15,7 @@
     "extra/bootstrap.sh",
     "extra/package_tool.sh",
     "extra/gen_provides.py",
+    "libraries/Wire/Wire.cpp",
     "\\.github/workflows/package_core\\.yml",
     "\\.github/workflows/package_tool\\.yml",
     "loader/CMakeLists.txt",

@@ -125,7 +125,16 @@ uint8_t arduino::ZephyrI2C::endTransmission(bool stopBit) {
 
 	ring_buf_consume(&txRingBuffer.rb, len);
 
-	return ret ? 1 : 0;
+	switch (ret) {
+	case 0:
+		return 0;
+	case -EIO: // a NACK; Zephyr doesn't tell the address from the data
+		return 2;
+	case -ETIMEDOUT:
+		return 5;
+	default:
+		return 4;
+	}
 }
 
 uint8_t arduino::ZephyrI2C::endTransmission(void) {
