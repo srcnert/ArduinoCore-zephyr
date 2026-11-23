@@ -364,18 +364,19 @@ The checks run automatically on GitHub for every pull request targeting
   step to `.github/workflows/rak-checks.yml`.
 - `rak-build` (PR + push to `rak-main`) builds the loader for
   target board in its own workflow: it needs the Zephyr
-  toolchain container and takes far longer than the checks. It then
-  builds the Zephyr samples with `west rak-sample-check`, runs
-  `west rak-lint` against the loader build's real headers, installs
-  arduino-cli and the pinned `arduino:zephyr_main` core, builds the
-  `llext-slid` tool, and compiles the sketches in `sketch/` against
-  that loader with `west rak-sketch-check`. It then builds the
-  `mps2_an386` loader with `-S cpputest` and runs the unit tests in QEMU
-  with `west rak-unit-check`. Finally it applies the RZI patches and then
-  the core's own patches (`zephyr/patches.yml`), rebuilds the `rak4631`
-  loader with the rzi and opt-rzi snippets (`-S rzi opt-rzi`), compiles
-  the sketches again and runs the unit tests again on a `mps2_an386`
-  loader built with `-S rzi opt-rzi cpputest`.
+  toolchain container and takes far longer than the checks. It installs
+  arduino-cli and the pinned `arduino:zephyr_main` core and builds the
+  `llext-slid` tool first, then builds the loader, runs `west rak-lint`
+  against the loader build's real headers and compiles the sketches in
+  `sketch/` against that loader with `west rak-sketch-check`. It then
+  applies the RZI patches and then the core's own patches
+  (`zephyr/patches.yml`), rebuilds the `rak4631` loader with the rzi and
+  opt-rzi snippets (`-S rzi opt-rzi`) and compiles the sketches again.
+  Finally it builds the Zephyr samples with `west rak-sample-check`.
+- `rak-unit-tests` (PR + push to `rak-main`) applies the same patches,
+  builds the `mps2_an386` loader with `-S cpputest` and runs the unit
+  tests in QEMU with `west rak-unit-check`, then repeats them with
+  `-S rzi opt-rzi cpputest`.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every
