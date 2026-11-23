@@ -8,3 +8,7 @@ boards:
     append:
       EXTRA_CONF_FILE: rak4631_nrf52840.conf
       EXTRA_DTC_OVERLAY_FILE: rak4631_nrf52840.overlay
+  mps2/an386:
+    append:
+      EXTRA_CONF_FILE: mps2_an386.conf
+      EXTRA_DTC_OVERLAY_FILE: mps2_an386.overlay
