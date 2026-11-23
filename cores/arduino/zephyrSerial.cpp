@@ -14,6 +14,12 @@
 
 namespace {
 
+#if ZARD_BOARD_HAS_SERIALUSB
+const struct device *const usb_dev = DEVICE_DT_GET(ZARD_SERIALUSB_PHANDLE);
+#else
+const struct device *const usb_dev = nullptr;
+#endif
+
 enum uart_config_parity conf_parity(uint16_t conf) {
 	switch (conf & SERIAL_PARITY_MASK) {
 	case SERIAL_PARITY_EVEN:
@@ -91,6 +97,9 @@ void arduino::ZephyrSerial::IrqHandler() {
 		 */
 		key = k_spin_lock(&rx.lock);
 		size_t space = ring_buf_space_get(&rx.ringbuf);
+		if (uart != usb_dev) {
+			space = sizeof(buf);
+		}
 		if (space == 0) {
 			rxThrottled = true;
 			uart_irq_rx_disable(uart);
