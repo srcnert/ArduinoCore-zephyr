@@ -22,6 +22,10 @@ static void cpputest_serial_puts(const char *str, PlatformSpecificFile) {
 	Serial.print(str);
 }
 
+static unsigned long cpputest_millis() {
+	return millis();
+}
+
 void setup() {
 	Serial.begin(115200);
 	// USB serial drops output until the host opens the port
@@ -30,6 +34,7 @@ void setup() {
 	// Twister clears its input buffer up to 100 ms after opening the port
 	delay(1000);
 	PlatformSpecificFPuts = cpputest_serial_puts;
+	GetPlatformSpecificTimeInMillis = cpputest_millis;
 
 	// -b runs the tests in the order they are written
 	const char *args[] = {"cpputest", "-v", "-b"};

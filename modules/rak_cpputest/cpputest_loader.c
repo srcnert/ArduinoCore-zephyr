@@ -42,6 +42,7 @@ __attribute__((weak)) off_t lseek(int fd, off_t offset, int whence) {
 	EXPORT_SYMBOL(name);
 
 FORCE_EXPORT_SYM(PlatformSpecificFPuts);
+FORCE_EXPORT_SYM(GetPlatformSpecificTimeInMillis);
 FORCE_EXPORT_SYM(_Z10StringFromPKc);
 FORCE_EXPORT_SYM(_Z10StringFromPKv);
 FORCE_EXPORT_SYM(_Z10StringFromRK12SimpleString);

@@ -14,6 +14,12 @@
 
 namespace {
 
+#if ZARD_BOARD_HAS_SERIALUSB
+const struct device *const usb_dev = DEVICE_DT_GET(ZARD_SERIALUSB_PHANDLE);
+#else
+const struct device *const usb_dev = nullptr;
+#endif
+
 enum uart_config_parity conf_parity(uint16_t conf) {
 	switch (conf & SERIAL_PARITY_MASK) {
 	case SERIAL_PARITY_EVEN:
@@ -91,6 +97,9 @@ void arduino::ZephyrSerial::IrqHandler() {
 		 */
 		key = k_spin_lock(&rx.lock);
 		size_t space = ring_buf_space_get(&rx.ringbuf);
+		if (uart != usb_dev) {
+			space = sizeof(buf);
+		}
 		if (space == 0) {
 			rxThrottled = true;
 			uart_irq_rx_disable(uart);
@@ -108,7 +117,8 @@ void arduino::ZephyrSerial::IrqHandler() {
 	}
 
 	key = k_spin_lock(&tx.lock);
-	if (ring_buf_size_get(&tx.ringbuf) == 0) {
+	if (ring_buf_size_get(&tx.ringbuf) == 0 && (!flushing || uart_irq_tx_complete(uart))) {
+		flushing = false;
 		uart_irq_tx_disable(uart);
 	}
 	k_spin_unlock(&tx.lock, key);
@@ -120,7 +130,7 @@ void arduino::ZephyrSerial::IrqHandler() {
 			ring_buf_peek(&tx.ringbuf, &buf[0], length);
 			ret = uart_fifo_fill(uart, &buf[0], length);
 			if (ret > 0) {
-				ring_buf_get(&tx.ringbuf, nullptr, ret);
+				ring_buf_get(&tx.ringbuf, &buf[0], ret);
 			}
 		}
 		k_spin_unlock(&tx.lock, key);
@@ -206,16 +216,9 @@ size_t arduino::ZephyrSerial::write(const uint8_t *buffer, size_t size) {
 }
 
 void arduino::ZephyrSerial::flush() {
-	while (true) {
-		k_spinlock_key_t key = k_spin_lock(&tx.lock);
-		bool empty = ring_buf_is_empty(&tx.ringbuf);
-		k_spin_unlock(&tx.lock, key);
-		if (empty) {
-			break;
-		}
-		k_yield();
-	}
-	while (uart_irq_tx_complete(uart) == 0) {
+	flushing = true;
+	uart_irq_tx_enable(uart);
+	while (flushing) {
 		k_yield();
 	}
 }

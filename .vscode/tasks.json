@@ -31,7 +31,7 @@
             // ------------------------------------ //
             "SAMPLE": "samples/blinky_arduino",
             // ------------------------------------ //
-            "SERIAL_PORT": "/dev/cu.usbmodem101"
+            "SERIAL_PORT": "/dev/cu.usbmodem1101"
         },
         "cwd": "${workspaceFolder}"
     },
@@ -52,8 +52,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                // "-S", "rzi", "opt-rzi", "cpputest"
-                "-S", "rzi", "opt-rzi"
+                "-S", "rzi", "opt-rzi", "cpputest"
+                // "-S", "rzi", "opt-rzi"
                 // "-S", "rzi", "debug"
                 // "-S", "rzi"
             ],
@@ -218,7 +218,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Test: Run (Twister)",
+            "label": "Test: Unit (Twister)",
             "type": "shell",
             "command": "west",
             "args": [
@@ -236,12 +236,12 @@
             "problemMatcher": []
         },
         {
-            "label": "Test: Run on board (Twister)",
+            "label": "Test: Integration (Twister)",
             "type": "shell",
             "command": "west",
             "args": [
                 "twister",
-                "-T", "test/unit",
+                "-T", "test/integration",
                 "-p", "${BOARD_WEST}",
                 "-x", "RAK_BOARD=${BOARD_ARD}",
                 "-x", "RAK_VARIANT=${VARIANT}",
@@ -250,12 +250,12 @@
                 "--flash-before",
                 "--flash-command", "extra/rak/twister_flash.sh,${DEVICE},0x80000"
             ],
-            // "dependsOrder": "sequence",
-            // "dependsOn": [
-            //     "Clean",
-            //     "Loader: Build",
-            //     "Loader: Flash (J-Link)"
-            // ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean",
+                "Loader: Build",
+                "Loader: Flash (J-Link)"
+            ],
             "problemMatcher": []
         },
         {

@@ -144,6 +144,11 @@ void analogWrite(pin_size_t pinNumber, int value) {
 	 * and the value arguments. So usually the period value sets as 255.
 	 */
 	(void)pwm_set_pulse_dt(&arduino_pwm[idx], pulse);
+
+	// 0% and 100% take effect at the end of the current period
+	if (pulse == 0 || pulse >= arduino_pwm[idx].period) {
+		k_busy_wait(DIV_ROUND_UP(arduino_pwm[idx].period, NSEC_PER_USEC));
+	}
 }
 
 #endif
