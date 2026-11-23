@@ -38,8 +38,8 @@ jobs:
           persist-credentials: false
           path: ArduinoCore-zephyr
 
-      - name: Install curl, jq, zstd and cppcheck
-        run: apt-get update -qq && apt-get install -y -qq curl jq zstd cppcheck
+      - name: Install curl, jq, zstd, cppcheck and QEMU
+        run: apt-get update -qq && apt-get install -y -qq curl jq zstd cppcheck qemu-system-arm
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
@@ -143,14 +143,25 @@ jobs:
           west rak-sketch-check -b rak4631 --baseboard rak19007
 
       - name: Build the loader with rzi + opt-rzi snippets and compile sketches
-        # Rebuilds the rak4631 loader with the rzi snippet (the only board
-        # it supports) and the opt-rzi snippet, so the RZI sketches compile
-        # their real code against the SLID exports. The core's own patches
-        # go after the RZI ones. Runs last because the patches and the
-        # rebuild change what the steps above build and check.
+        # Rebuilds the rak4631 loader with the rzi and opt-rzi snippets, so
+        # the RZI sketches compile their real code against the SLID exports.
+        # The core's own patches go after the RZI ones. Runs after the steps
+        # without rzi because the patches change what they build and check.
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           west patch -sm rzi -l zephyr/patches_arduino.yml apply
           west patch apply
           ./extra/build.sh rak4631 -S rzi opt-rzi
           west rak-sketch-check -b rak4631 --baseboard rak19007
+
+      - name: Run the unit tests in QEMU without rzi
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          ./extra/build.sh mps2_an386 -S cpputest
+          west rak-unit-check -b mps2_an386
+
+      - name: Run the unit tests in QEMU with rzi
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          ./extra/build.sh mps2_an386 -S rzi opt-rzi cpputest
+          west rak-unit-check -b mps2_an386

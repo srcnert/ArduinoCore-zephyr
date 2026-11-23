@@ -294,6 +294,7 @@ the CI workflows, so problems can be caught locally before opening a PR.
 ```shell
 ${config:TOOLCHAIN_BASE}/bin/python3 -m pip install -r extra/rak/requirements.txt
 brew install cppcheck  # rak-lint
+brew install qemu      # rak-unit-check
 ```
 
 ### Local check commands
@@ -315,9 +316,11 @@ west rak-newline-check      # files must end with a newline
 west rak-ruff               # Python lint (ruff, .ruff.toml rules)
 west rak-sample-check       # build the samples in samples/ (west build)
 west rak-sketch-check       # compile the sketches in sketch/ (arduino-cli)
+west rak-unit-check         # build/run the unit tests in test/unit (Twister)
 west rak-whitespace-check   # no trailing whitespace
 west rak-checkall           # all of the above + loader build
-                            # (--quick skips build, lint, sketches, samples)
+                            # (--quick skips build, lint, sketches, unit
+                            # tests, samples)
 ```
 
 `west rak-lint` requires a build directory: it checks the files found in its
@@ -334,6 +337,15 @@ and the `rak:zephyr` core registered with arduino-cli. In
 `west rak-checkall` it runs after the loader build without snippets, then
 again for `rak4631` after a rebuild with `-S rzi opt-rzi`. That rebuild
 needs the patches from "Loader snippets" in section 3 to be applied first.
+
+`west rak-unit-check` runs `west twister -T test/unit` against the loader
+last built for the board (default `mps2_an386`, override with `-b`), which
+needs the cpputest snippet (`./extra/build.sh <target> -S cpputest`). Twister
+runs the tests in QEMU on `mps2_an386` and only builds them on hardware
+boards. `west rak-checkall` always runs them on `mps2_an386`, whatever `-b`
+says: once with `-S cpputest` and once with `-S rzi opt-rzi cpputest`. On
+`mps2_an386` the rzi snippet puts the SX1262 on emulated SPI and GPIO, so RZI
+builds and boots but has no radio.
 
 Every command prints a summary line
 (`Checked N file(s): X passed, Y failed - (Z ignored)`) and exits non-zero on
@@ -357,10 +369,13 @@ The checks run automatically on GitHub for every pull request targeting
   `west rak-lint` against the loader build's real headers, installs
   arduino-cli and the pinned `arduino:zephyr_main` core, builds the
   `llext-slid` tool, and compiles the sketches in `sketch/` against
-  that loader with `west rak-sketch-check`. Finally it applies the RZI
-  patches and then the core's own patches (`zephyr/patches.yml`),
-  rebuilds the `rak4631` loader with the rzi and opt-rzi snippets
-  (`-S rzi opt-rzi`) and compiles the sketches again.
+  that loader with `west rak-sketch-check`. It then builds the
+  `mps2_an386` loader with `-S cpputest` and runs the unit tests in QEMU
+  with `west rak-unit-check`. Finally it applies the RZI patches and then
+  the core's own patches (`zephyr/patches.yml`), rebuilds the `rak4631`
+  loader with the rzi and opt-rzi snippets (`-S rzi opt-rzi`), compiles
+  the sketches again and runs the unit tests again on a `mps2_an386`
+  loader built with `-S rzi opt-rzi cpputest`.
 
 `rak-commit-check` requires every commit subject to match
 `<scope>: <description>` (e.g. `variants: rak4631: add board defs`) and every
