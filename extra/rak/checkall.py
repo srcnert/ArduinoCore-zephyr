@@ -14,9 +14,11 @@ Usage:
 The cppcheck lint and the sketch compilation run after the plain loader
 build, against that build's artifacts. On boards the rzi snippet
 supports, the loader is then rebuilt with the rzi and opt-rzi snippets and
-the sketches are compiled again. The sample build is independent of the
-loader but just as heavy, so it runs last; --quick skips all of these
-steps.
+the sketches are compiled again. The unit tests run in QEMU on a
+mps2_an386 loader built with the cpputest snippet, then again with the
+rzi and opt-rzi snippets added. The sample build is
+independent of the loader but just as heavy, so it runs last; --quick
+skips all of these steps.
 
 These steps build one board at a time, selected with -b; every board
 defined in boards.txt works.
@@ -35,8 +37,11 @@ import rak_utils as utils
 # Board built by the heavy steps unless -b says otherwise
 DEFAULT_BOARD = "rak4631"
 
-# Boards the rzi snippet supports (modules/lib/rzi/snippets/rzi/snippet.yml)
+# Boards whose sketches are compiled again with the rzi snippet
 RZI_BOARDS = {"rak4631"}
+
+# QEMU board the unit tests run on, whatever -b says
+UNIT_BOARD = "mps2_an386"
 
 # (description, command) pairs, run in this order from the repo root.
 # West commands get -v appended when running verbose.
@@ -88,9 +93,19 @@ def _build_checks(board):
             (f"loader build ({label})", build + ["-S", "rzi", "opt-rzi"]),
             (f"sketch compilation ({label})", sketches),
         ]
-    checks.append(
-        (f"sample build ({target})", ["west", "rak-sample-check", "-b", target])
-    )
+    unit_build = ["./extra/build.sh", UNIT_BOARD, "-S"]
+    units = ["west", "rak-unit-check", "-b", UNIT_BOARD]
+    rzi_label = f"{UNIT_BOARD}, rzi, opt-rzi"
+    checks += [
+        (f"loader build ({UNIT_BOARD}, cpputest)", unit_build + ["cpputest"]),
+        (f"unit tests ({UNIT_BOARD})", units),
+        (
+            f"loader build ({rzi_label}, cpputest)",
+            unit_build + ["rzi", "opt-rzi", "cpputest"],
+        ),
+        (f"unit tests ({rzi_label})", units),
+        (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),
+    ]
     return checks
 
 
@@ -122,7 +137,7 @@ class CheckAll(WestCommand):
         parser.add_argument(
             "--quick",
             action="store_true",
-            help="skip heavy steps (loader build, lint, sketch and sample build)",
+            help="skip heavy steps (loader build, lint, sketches, unit tests, samples)",
         )
         parser.add_argument(
             "-b",

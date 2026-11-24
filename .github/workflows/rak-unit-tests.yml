@@ -1,0 +1,106 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+name: RAKwireless Unit Tests
+
+on:
+  pull_request:
+    branches: [rak-main]
+  push:
+    branches: [rak-main]
+
+concurrency:
+  group: rak-unit-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: zephyrprojectrtos/ci-base:latest
+      # apt-get needs root; the image's default user is 'user'.
+      options: --user root
+    env:
+      CMAKE_PREFIX_PATH: /opt/toolchains
+      MODULE_PATH: ArduinoCore-zephyr
+      ARDUINO_DIRECTORIES_USER: /tmp/arduino-user
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true  # needed by get_core_version.sh
+          persist-credentials: false
+          path: ArduinoCore-zephyr
+
+      - name: Install curl, jq, zstd and QEMU
+        run: apt-get update -qq && apt-get install -y -qq curl jq zstd qemu-system-arm
+
+      - name: Setup Zephyr project
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: "url.https://x-access-token:${{ secrets.RZI_TOKEN }}@github.com/\
+            RAKWireless/rzi.insteadOf"
+          GIT_CONFIG_VALUE_0: https://github.com/RAKWireless/rzi
+        with:
+          app-path: ${{ env.MODULE_PATH }}
+          toolchains: arm-zephyr-eabi
+          west-project-filter: -hal_.*,+hal_nordic
+          enable-ccache: false
+
+      - name: Fetch the Arduino API blob
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west blobs --auto-accept fetch arduino-api
+
+      - name: Export Zephyr CMake package
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west zephyr-export
+
+      - name: Install arduino-cli
+        run: |
+          curl -fsSL \
+            https://raw.githubusercontent.com/arduino/arduino-cli/v1.5.1/install.sh \
+            | BINDIR=/usr/local/bin sh -s 1.5.1
+          arduino-cli version
+
+      - name: Install the Arduino Zephyr toolchain
+        run: arduino-cli core install arduino:zephyr_main@1.0.0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Build the llext-slid tool
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          (cd tools/llext-slid && go build)
+          echo 'runtime.tools.llext-slid.path={runtime.platform.path}/tools/llext-slid' \
+            >> platform.local.txt
+
+      - name: Apply the RZI and core patches
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          west patch -sm rzi -l zephyr/patches_arduino.yml apply
+          west patch apply
+
+      - name: Run the unit tests in QEMU without rzi
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          mkdir -p venv/bin && touch venv/bin/activate
+          mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
+          ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
+          ./extra/build.sh mps2_an386 -S cpputest
+          west rak-unit-check -b mps2_an386
+
+      - name: Run the unit tests in QEMU with rzi
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          ./extra/build.sh mps2_an386 -S rzi opt-rzi cpputest
+          west rak-unit-check -b mps2_an386

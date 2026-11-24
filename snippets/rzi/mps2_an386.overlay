@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2026 RAKwireless Technology Limited
+ * Author: sercan.erat@rakwireless.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/usp/sx126x.h>
+
+/ {
+	chosen {
+		zephyr,lorawan-transceiver = &lora;
+		lora-basics-modem-context-partition = &lora_context_partition;
+	};
+
+	/*
+	 * QEMU has no LoRa radio: the SX1262 sits on emulated SPI and GPIO
+	 * controllers, so RZI builds and boots, but LoRa calls fail.
+	 */
+	lora_gpio: lora-gpio {
+		compatible = "zephyr,gpio-emul";
+		gpio-controller;
+		#gpio-cells = <2>;
+		rising-edge;
+		falling-edge;
+		high-level;
+		low-level;
+		status = "okay";
+	};
+
+	lora_spi: spi@33334444 {
+		compatible = "zephyr,spi-emul-controller";
+		reg = <0x33334444 0x1000>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		lora: lora@0 {
+			compatible = "semtech,sx1262-new";
+			reg = <0>;
+			reset-gpios = <&lora_gpio 0 GPIO_ACTIVE_LOW>;
+			busy-gpios = <&lora_gpio 1 GPIO_ACTIVE_HIGH>;
+			dio1-gpios = <&lora_gpio 2 GPIO_ACTIVE_HIGH>;
+			dio2-as-rf-switch;
+			dio3-as-tcxo-control;
+			tcxo-voltage = <SX126X_TCXO_SUPPLY_3_3V>;
+			tcxo-wakeup-time = <5>;
+			reg-mode = <SX126X_REG_MODE_DCDC>;
+			/* SX1262 PA table, one entry per dBm from -9 to 22. */
+			tx-power-cfg = <(1) 0x01 0x01>,
+				       <(4) 0x00 0x01>,
+				       <(4) 0x01 0x01>,
+				       <(7) 0x00 0x01>,
+				       <(2) 0x00 0x02>,
+				       <(7) 0x03 0x01>,
+				       <(8) 0x03 0x01>,
+				       <(9) 0x03 0x01>,
+				       <(13) 0x00 0x01>,
+				       <(16) 0x00 0x01>,
+				       <(19) 0x00 0x01>,
+				       <(20) 0x00 0x01>,
+				       <(18) 0x03 0x01>,
+				       <(21) 0x00 0x01>,
+				       <(16) 0x00 0x02>,
+				       <(22) 0x00 0x01>,
+				       <(22) 0x01 0x01>,
+				       <(22) 0x02 0x01>,
+				       <(22) 0x03 0x01>,
+				       <(22) 0x04 0x01>,
+				       <(22) 0x00 0x02>,
+				       <(22) 0x01 0x02>,
+				       <(22) 0x02 0x02>,
+				       <(22) 0x03 0x02>,
+				       <(22) 0x01 0x03>,
+				       <(22) 0x02 0x03>,
+				       <(22) 0x00 0x05>,
+				       <(22) 0x01 0x05>,
+				       <(22) 0x02 0x05>,
+				       <(22) 0x03 0x06>,
+				       <(22) 0x04 0x06>,
+				       <(22) 0x04 0x07>;
+			spi-max-frequency = <1000000>;
+		};
+	};
+};
+
+/*
+ * Same split as on the RAK4631: the last 8 KB of the variant's 32 KB
+ * storage_partition hold the LoRa Basics Modem context.
+ */
+/delete-node/ &storage_partition;
+
+&flash_sim0 {
+	partitions {
+		storage_partition: partition@78000 {
+			label = "storage";
+			reg = <0x00078000 0x00006000>;
+		};
+
+		lora_context_partition: partition@7e000 {
+			label = "lora_context";
+			reg = <0x0007e000 0x00002000>;
+		};
+	};
+};

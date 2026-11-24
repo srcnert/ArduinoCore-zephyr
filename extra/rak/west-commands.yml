@@ -68,6 +68,11 @@ west-commands:
       - name: rak-sketch-check
         class: SketchCheck
         help: compile the sketches in sketch/ (arduino-cli)
+  - file: extra/rak/unit_check.py
+    commands:
+      - name: rak-unit-check
+        class: UnitCheck
+        help: build and run the unit tests in test/unit (Twister)
   - file: extra/rak/sample_check.py
     commands:
       - name: rak-sample-check

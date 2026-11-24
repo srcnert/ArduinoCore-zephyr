@@ -67,37 +67,6 @@ jobs:
         working-directory: ${{ env.MODULE_PATH }}
         run: west zephyr-export
 
-      - name: Build loader
-        working-directory: ${{ env.MODULE_PATH }}
-        run: |
-          mkdir -p venv/bin && touch venv/bin/activate
-          ./extra/build.sh nrf52840dk
-          ./extra/build.sh rak4631
-
-      - name: Build samples
-        # Standalone Zephyr build of the samples. The sample list comes
-        # from DEFAULT_SAMPLES in extra/rak/sample_check.py, so this stays
-        # in sync with what 'west rak-checkall' builds locally.
-        working-directory: ${{ env.MODULE_PATH }}
-        run: |
-          west rak-sample-check -b nrf52840dk/nrf52840
-          west rak-sample-check -b rak4631/nrf52840
-
-      - name: Fetch the PR base branch
-        # rak-lint diffs the working tree against the merge-base with
-        # rak-main, which the detached PR checkout does not have locally.
-        if: github.event_name == 'pull_request'
-        working-directory: ${{ env.MODULE_PATH }}
-        run: git fetch origin "$GITHUB_BASE_REF:$GITHUB_BASE_REF"
-
-      - name: Cppcheck static analysis
-        # Runs against the real headers of the build above. Skipped on
-        # upstream sync PRs, like the rak-checks workflow.
-        if: ${{ github.event_name != 'pull_request' ||
-          !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
-        working-directory: ${{ env.MODULE_PATH }}
-        run: west rak-lint -v -b build/rak4631_nrf52840/loader
-
       - name: Install arduino-cli
         # Pinned (script and binary) for reproducible sketch builds.
         run: |
@@ -134,6 +103,28 @@ jobs:
           echo 'runtime.tools.llext-slid.path={runtime.platform.path}/tools/llext-slid' \
             >> platform.local.txt
 
+      - name: Build loader without RZI
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          mkdir -p venv/bin && touch venv/bin/activate
+          ./extra/build.sh nrf52840dk
+          ./extra/build.sh rak4631
+
+      - name: Fetch the PR base branch
+        # rak-lint diffs the working tree against the merge-base with
+        # rak-main, which the detached PR checkout does not have locally.
+        if: github.event_name == 'pull_request'
+        working-directory: ${{ env.MODULE_PATH }}
+        run: git fetch origin "$GITHUB_BASE_REF:$GITHUB_BASE_REF"
+
+      - name: Cppcheck static analysis
+        # Runs against the real headers of the build above. Skipped on
+        # upstream sync PRs, like the rak-checks workflow.
+        if: ${{ github.event_name != 'pull_request' ||
+          !contains(github.event.pull_request.labels.*.name, 'upstream-sync') }}
+        working-directory: ${{ env.MODULE_PATH }}
+        run: west rak-lint -v -b build/rak4631_nrf52840/loader
+
       - name: Compile sketches
         working-directory: ${{ env.MODULE_PATH }}
         run: |
@@ -143,14 +134,23 @@ jobs:
           west rak-sketch-check -b rak4631 --baseboard rak19007
 
       - name: Build the loader with rzi + opt-rzi snippets and compile sketches
-        # Rebuilds the rak4631 loader with the rzi snippet (the only board
-        # it supports) and the opt-rzi snippet, so the RZI sketches compile
-        # their real code against the SLID exports. The core's own patches
-        # go after the RZI ones. Runs last because the patches and the
-        # rebuild change what the steps above build and check.
+        # Rebuilds the rak4631 loader with the rzi and opt-rzi snippets, so
+        # the RZI sketches compile their real code against the SLID exports.
+        # The core's own patches go after the RZI ones. Runs after the plain
+        # loader and sketch steps because the patches and the rebuild change
+        # what they build and check.
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           west patch -sm rzi -l zephyr/patches_arduino.yml apply
           west patch apply
           ./extra/build.sh rak4631 -S rzi opt-rzi
           west rak-sketch-check -b rak4631 --baseboard rak19007
+
+      - name: Build samples
+        # Standalone Zephyr build of the samples. The sample list comes
+        # from DEFAULT_SAMPLES in extra/rak/sample_check.py, so this stays
+        # in sync with what 'west rak-checkall' builds locally.
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          west rak-sample-check -b nrf52840dk/nrf52840
+          west rak-sample-check -b rak4631/nrf52840

@@ -88,13 +88,30 @@ jobs:
             - CI workflow and Python tooling changes: watch for secrets
               exposure and execution of untrusted PR code.
 
+            Report only defects this PR introduces: a crash, hang, wrong
+            result, data loss or security problem. Each inline finding
+            needs a concrete failure scenario and file:line evidence.
+            Cleanups, refactors, test layout and design ideas are not
+            inline comments; list them in one line of the summary at most.
+
+            House rules (already decided, do not argue against them):
+            - In files inherited from upstream, a PR changes only what its
+              fix needs. Never ask for more edits there (dead code, line
+              wraps, lint); only review the lines the PR changed.
+            - .vscode/ holds the author's bench settings; skip it.
+            - Commit messages state the intent. Read them (gh pr view
+              --json commits) and disagree only with a failure scenario.
+
             Do not comment on formatting, code style, license headers,
             spelling or commit messages - CI (west rak-checkall) already
-            enforces those. Only raise issues you are confident about.
+            enforces those.
 
-            Zephyr and the west modules are checked out in the parent
-            directory. Cite their source before claiming how they behave;
-            if it does not confirm the claim, ask instead of reporting a bug.
+            Zephyr, the west modules and Twister are checked out in the
+            parent directory. Cite their source before claiming how they
+            behave. You cannot run builds or tests, so a claim you could not
+            confirm from source is a question, not a finding. Use a
+            suggestion block only for an exact replacement of exactly the
+            commented lines.
 
             Post your review like a human reviewer would:
             - Each specific issue goes on the affected line as an inline
