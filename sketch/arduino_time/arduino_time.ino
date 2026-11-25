@@ -34,7 +34,13 @@ void loop() {
 	Serial.print("micros(): ");
 	Serial.println(usBefore); // show the time with micros
 
+#ifdef CONFIG_RAK_RUI_API
 	Serial.printf("After Delay %ld milliseconds\n", delayTime);
+#else
+	Serial.print("After Delay ");
+	Serial.print(delayTime);
+	Serial.println(" milliseconds");
+#endif
 
 	msBefore = millis();
 	usBefore = micros();
@@ -47,9 +53,21 @@ void loop() {
 	Serial.print("micros(): ");
 	Serial.println(usAfter); // show the time with micros
 
+#ifdef CONFIG_RAK_RUI_API
 	Serial.printf("measured: %lu ms / %lu us\n", msAfter - msBefore, usAfter - usBefore);
 
 	Serial.printf("After Delay %ld microseconds\n", delayTime);
+#else
+	Serial.print("measured: ");
+	Serial.print(msAfter - msBefore);
+	Serial.print(" ms / ");
+	Serial.print(usAfter - usBefore);
+	Serial.println(" us");
+
+	Serial.print("After Delay ");
+	Serial.print(delayTime);
+	Serial.println(" microseconds");
+#endif
 
 	msBefore = millis();
 	usBefore = micros();
@@ -62,7 +80,15 @@ void loop() {
 	Serial.print("micros(): ");
 	Serial.println(usAfter); // show the time with micros
 
+#ifdef CONFIG_RAK_RUI_API
 	Serial.printf("measured: %lu ms / %lu us\n", msAfter - msBefore, usAfter - usBefore);
+#else
+	Serial.print("measured: ");
+	Serial.print(msAfter - msBefore);
+	Serial.print(" ms / ");
+	Serial.print(usAfter - usBefore);
+	Serial.println(" us");
+#endif
 
 	Serial.println("");
 

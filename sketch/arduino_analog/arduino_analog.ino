@@ -49,9 +49,18 @@ void loop() {
 	float max_count = (float)(1UL << analogReadResolution());
 
 	int adc_value = analogRead(analogPin);
-	Serial.printf("ADC pin value = %d\r\n", adc_value); // print analogPin adc value
 	// This is the formula to get the input voltage of RAK5811:
-	Serial.printf("Voltage value = %f V\r\n",
-				  (double)(adcReference * (((float)adc_value) / max_count) * (5.0f) / (3.0f)));
+	double voltage = (double)(adcReference * (((float)adc_value) / max_count) * (5.0f) / (3.0f));
+#ifdef CONFIG_RAK_RUI_API
+	Serial.printf("ADC pin value = %d\r\n", adc_value); // print analogPin adc value
+	Serial.printf("Voltage value = %f V\r\n", voltage);
+#else
+	Serial.print("ADC pin value = ");
+	Serial.print(adc_value); // print analogPin adc value
+	Serial.print("\r\n");
+	Serial.print("Voltage value = ");
+	Serial.print(voltage, 6);
+	Serial.print(" V\r\n");
+#endif
 	delay(1000);
 }

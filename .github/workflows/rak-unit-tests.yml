@@ -90,7 +90,7 @@ jobs:
           west patch -sm rzi -l zephyr/patches_arduino.yml apply
           west patch apply
 
-      - name: Run the unit tests in QEMU without rzi
+      - name: Run the unit tests in QEMU without rui-api
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
@@ -99,8 +99,17 @@ jobs:
           ./extra/build.sh mps2_an386 -S cpputest
           west rak-unit-check -b mps2_an386
 
-      - name: Run the unit tests in QEMU with rzi
+      - name: Run the unit tests in QEMU with rui-api
         working-directory: ${{ env.MODULE_PATH }}
         run: |
-          ./extra/build.sh mps2_an386 -S rzi opt-rzi cpputest
+          mkdir -p venv/bin && touch venv/bin/activate
+          mkdir -p "$ARDUINO_DIRECTORIES_USER/hardware/rak"
+          ln -sfn "$PWD" "$ARDUINO_DIRECTORIES_USER/hardware/rak/zephyr"
+          ./extra/build.sh mps2_an386 -S rui-api cpputest
+          west rak-unit-check -b mps2_an386
+
+      - name: Run the unit tests in QEMU with rui-api and rzi
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          ./extra/build.sh mps2_an386 -S rui-api rzi opt-rzi cpputest
           west rak-unit-check -b mps2_an386

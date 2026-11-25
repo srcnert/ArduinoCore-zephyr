@@ -5,6 +5,8 @@
  */
 
 #include <Arduino.h>
+
+#ifdef CONFIG_RAK_RUI_API
 #include <CppUTest/TestHarness.h>
 #include <string.h>
 
@@ -89,3 +91,5 @@ TEST(RakSerial, serial_object) {
 	CHECK(Serial.getMode() == rak::RAK_DEFAULT_MODE);
 	CHECK(baudrate == 0 || baudrate == 115200);
 }
+
+#endif /* CONFIG_RAK_RUI_API */

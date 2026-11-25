@@ -52,7 +52,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "-S", "rzi", "opt-rzi", "cpputest"
+                "-S", "rui-api", "rzi", "opt-rzi", "cpputest"
+                // "-S", "rzi", "opt-rzi", "cpputest"
                 // "-S", "rzi", "opt-rzi"
                 // "-S", "rzi", "debug"
                 // "-S", "rzi"

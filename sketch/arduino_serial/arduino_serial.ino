@@ -13,10 +13,16 @@
 #include "Arduino.h"
 
 void setup() {
+#ifdef CONFIG_RAK_RUI_API
 	// initialize serial communication at 115200 bits per second, and use the AT mode
 	Serial.begin(115200, RAK_AT_MODE);
 	// initialize serial communication at 115200 bits per second, and use the custom mode
 	Serial1.begin(115200, RAK_CUSTOM_MODE);
+#else
+	// initialize serial communication at 115200 bits per second
+	Serial.begin(115200);
+	Serial1.begin(115200);
+#endif
 	delay(2000);
 
 	Serial.println("RAKwireless Arduino Serial Example");
