@@ -5,3 +5,5 @@
 tests:
   rak.coverage:
     platform_allow: mps2/an386
+    required_snippets:
+      - rui-api

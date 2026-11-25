@@ -11,12 +11,14 @@ Usage:
     west rak-checkall -v                     # pass -v to every check
     west rak-checkall -q                     # only show output of failures
 
-The cppcheck lint and the sketch compilation run after the plain loader
-build, against that build's artifacts. On boards the rzi snippet
-supports, the loader is then rebuilt with the rzi and opt-rzi snippets and
-the sketches are compiled again. The unit tests run in QEMU on a
-mps2_an386 loader built with the cpputest snippet, then again with the
-rzi and opt-rzi snippets added. The sample build is
+The cppcheck lint and the sketch compilation run after the loader build
+with the rui-api snippet, against that build's artifacts; the sketches
+are then compiled again against a loader built without snippets. On
+boards the rzi snippet supports, the loader is then rebuilt with the
+rui-api, rzi and opt-rzi snippets and the sketches are compiled again.
+The unit tests run in QEMU on a mps2_an386 loader built with the
+cpputest snippet, then with rui-api added, then with rui-api, rzi and
+opt-rzi added. The sample build is
 independent of the loader but just as heavy, so it runs last; --quick
 skips all of these steps.
 
@@ -80,28 +82,37 @@ def _build_checks(board):
     if "--sysbuild" in zephyr_args.split():
         build_dir += "/loader"
 
-    build = ["./extra/build.sh", board]
+    plain = ["./extra/build.sh", board]
+    build = plain + ["-S", "rui-api"]
     sketches = ["west", "rak-sketch-check", "-b", board]
     checks = [
-        (f"loader build ({board})", build),
+        (f"loader build ({board}, rui-api)", build),
         ("cppcheck static analysis", ["west", "rak-lint", "-b", build_dir]),
+        (f"sketch compilation ({board}, rui-api)", sketches),
+        (f"loader build ({board})", plain),
         (f"sketch compilation ({board})", sketches),
     ]
     if board in RZI_BOARDS:
-        label = f"{board}, rzi, opt-rzi"
+        label = f"{board}, rui-api, rzi, opt-rzi"
         checks += [
-            (f"loader build ({label})", build + ["-S", "rzi", "opt-rzi"]),
+            (f"loader build ({label})", build + ["rzi", "opt-rzi"]),
             (f"sketch compilation ({label})", sketches),
         ]
     unit_build = ["./extra/build.sh", UNIT_BOARD, "-S"]
     units = ["west", "rak-unit-check", "-b", UNIT_BOARD]
-    rzi_label = f"{UNIT_BOARD}, rzi, opt-rzi"
+    rui_label = f"{UNIT_BOARD}, rui-api"
+    rzi_label = f"{UNIT_BOARD}, rui-api, rzi, opt-rzi"
     checks += [
         (f"loader build ({UNIT_BOARD}, cpputest)", unit_build + ["cpputest"]),
         (f"unit tests ({UNIT_BOARD})", units),
         (
+            f"loader build ({rui_label}, cpputest)",
+            unit_build + ["rui-api", "cpputest"],
+        ),
+        (f"unit tests ({rui_label})", units),
+        (
             f"loader build ({rzi_label}, cpputest)",
-            unit_build + ["rzi", "opt-rzi", "cpputest"],
+            unit_build + ["rui-api", "rzi", "opt-rzi", "cpputest"],
         ),
         (f"unit tests ({rzi_label})", units),
         (f"sample build ({target})", ["west", "rak-sample-check", "-b", target]),

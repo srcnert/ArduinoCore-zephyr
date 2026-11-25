@@ -59,6 +59,7 @@ endif()
 
 if (NOT CONFIG_LLEXT_EDK)
   add_subdirectory(cores)
+  add_subdirectory_ifdef(CONFIG_RAK_RUI_API cores/arduino/rak)
   add_subdirectory(libraries)
   zephyr_include_directories(${variant_dir})
 

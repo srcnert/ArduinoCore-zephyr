@@ -103,12 +103,12 @@ jobs:
           echo 'runtime.tools.llext-slid.path={runtime.platform.path}/tools/llext-slid' \
             >> platform.local.txt
 
-      - name: Build loader without RZI
+      - name: Build loader with rui-api
         working-directory: ${{ env.MODULE_PATH }}
         run: |
           mkdir -p venv/bin && touch venv/bin/activate
-          ./extra/build.sh nrf52840dk
-          ./extra/build.sh rak4631
+          ./extra/build.sh nrf52840dk -S rui-api
+          ./extra/build.sh rak4631 -S rui-api
 
       - name: Fetch the PR base branch
         # rak-lint diffs the working tree against the merge-base with
@@ -133,6 +133,14 @@ jobs:
           west rak-sketch-check -b nrf52840dk
           west rak-sketch-check -b rak4631 --baseboard rak19007
 
+      - name: Build the loader without rui-api and compile sketches
+        # Rebuilds the rak4631 loader without snippets, so the sketches also
+        # compile against a loader without the RUI API (their #else branches).
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          ./extra/build.sh rak4631
+          west rak-sketch-check -b rak4631 --baseboard rak19007
+
       - name: Build the loader with rzi + opt-rzi snippets and compile sketches
         # Rebuilds the rak4631 loader with the rzi and opt-rzi snippets, so
         # the RZI sketches compile their real code against the SLID exports.
@@ -143,7 +151,7 @@ jobs:
         run: |
           west patch -sm rzi -l zephyr/patches_arduino.yml apply
           west patch apply
-          ./extra/build.sh rak4631 -S rzi opt-rzi
+          ./extra/build.sh rak4631 -S rui-api rzi opt-rzi
           west rak-sketch-check -b rak4631 --baseboard rak19007
 
       - name: Build samples
