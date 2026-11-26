@@ -150,6 +150,7 @@ west patch apply
 ./extra/build.sh rak4631 -S debug      # shell, assertions, runtime stats
 ./extra/build.sh rak4631 -S debug rzi  # RZI (USP) LoRaWAN stack as well
 ./extra/build.sh rak4631 -S rzi opt-rzi # smaller loader
+./extra/build.sh rak4631 -S zephyr-ble # Zephyr BLE host instead of ArduinoBLE
 ```
 
 ## 4. Memory Footprint Reports

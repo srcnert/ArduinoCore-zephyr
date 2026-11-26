@@ -24,7 +24,7 @@
             // "BOARD_OPTIONS": "",
             // "DEVICE": "",
             // ------------------------------------ //
-            "SKETCH": "sketch/ble_peripheral",
+            "SKETCH": "sketch/zephyr_ble_peripheral",
             // "SKETCH": "sketch/rzi/periodical_uplink",
             // "SKETCH": "test/arduino_cpputest",
             "SKETCH_DEBUG": "false",
@@ -52,7 +52,7 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "-S", "rui-api", "rzi", "opt-rzi"
+                "-S", "zephyr-ble", "rui-api", "rzi", "opt-rzi"
                 // "-S", "rui-api", "rzi", "opt-rzi", "cpputest"
                 // "-S", "rzi", "opt-rzi", "cpputest"
                 // "-S", "rzi", "opt-rzi"
