@@ -271,6 +271,7 @@ installs are disabled by default, so enable them first:
 ```shell
 arduino-cli config set library.enable_unsafe_install true
 arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library"
+arduino-cli lib install ArduinoBLE
 arduino-cli lib install --git-url https://github.com/RAKWireless/RAK13800-W5100S.git#1.0.4
 ```
 
