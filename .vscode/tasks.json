@@ -24,7 +24,7 @@
             // "BOARD_OPTIONS": "",
             // "DEVICE": "",
             // ------------------------------------ //
-            "SKETCH": "sketch/zephyr_ble_peripheral",
+            "SKETCH": "sketch/debug_check",
             // "SKETCH": "sketch/rzi/periodical_uplink",
             // "SKETCH": "test/arduino_cpputest",
             "SKETCH_DEBUG": "false",
@@ -52,7 +52,8 @@
             "command": "extra/build.sh",
             "args": [
                 "${BOARD_ARD}",
-                "-S", "zephyr-ble", "rui-api", "rzi", "opt-rzi"
+                "-S", "zephyr-ble", "rui-api", "rzi", "opt-rzi", "debug"
+                // "-S", "zephyr-ble", "rui-api", "rzi", "opt-rzi"
                 // "-S", "rui-api", "rzi", "opt-rzi", "cpputest"
                 // "-S", "rzi", "opt-rzi", "cpputest"
                 // "-S", "rzi", "opt-rzi"
@@ -86,6 +87,26 @@
                 "-P", "mcumgr",
                 "-p", "${SERIAL_PORT}"
             ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Loader: RTT (J-Link)",
+            "type": "shell",
+            "command": "west",
+            "args": [
+                "rtt",
+                "-d", "build/${VARIANT}",
+                "-r", "jlink"
+            ],
+            "dependsOn": [
+                "Loader: RTT Stop (J-Link)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Loader: RTT Stop (J-Link)",
+            "type": "shell",
+            "command": "pkill -f 'JLinkGDBServer.*-rtttelnetport' || true",
             "problemMatcher": []
         },
         {
