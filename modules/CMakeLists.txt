@@ -5,3 +5,4 @@
 add_subdirectory_ifdef(CONFIG_RAK_CPPUTEST rak_cpputest)
 add_subdirectory_ifdef(CONFIG_RAK_DOUBLE_TAP rak_double_tap)
 add_subdirectory_ifdef(CONFIG_RAK_REGOUT0_FIX rak_regout0_fix)
+add_subdirectory_ifdef(CONFIG_RAK_ZEPHYR_BLE rak_zephyr_ble)

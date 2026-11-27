@@ -1,0 +1,12 @@
+# Copyright (c) 2026 RAKwireless Technology Limited
+# Author: sercan.erat@rakwireless.com
+# SPDX-License-Identifier: Apache-2.0
+
+config RAK_ZEPHYR_BLE
+	bool "Zephyr Bluetooth host API for sketches"
+	depends on BT_CONN
+	select BT_GATT_DYNAMIC_DB
+	select BT_DEVICE_NAME_DYNAMIC
+	help
+	  Export the Zephyr Bluetooth host functions a peripheral sketch
+	  uses.

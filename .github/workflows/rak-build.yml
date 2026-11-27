@@ -86,6 +86,7 @@ jobs:
         run: |
           arduino-cli lib install \
             "SparkFun SHTC3 Humidity and Temperature Sensor Library@1.1.4"
+          arduino-cli lib install --no-deps "ArduinoBLE@2.1.1"
           arduino-cli lib install --git-url \
             "https://github.com/RAKWireless/RAK13800-W5100S.git#1.0.4"
 

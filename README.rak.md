@@ -150,6 +150,7 @@ west patch apply
 ./extra/build.sh rak4631 -S debug      # shell, assertions, runtime stats
 ./extra/build.sh rak4631 -S debug rzi  # RZI (USP) LoRaWAN stack as well
 ./extra/build.sh rak4631 -S rzi opt-rzi # smaller loader
+./extra/build.sh rak4631 -S zephyr-ble # Zephyr BLE host instead of ArduinoBLE
 ```
 
 ## 4. Memory Footprint Reports
@@ -271,6 +272,7 @@ installs are disabled by default, so enable them first:
 ```shell
 arduino-cli config set library.enable_unsafe_install true
 arduino-cli lib install "SparkFun SHTC3 Humidity and Temperature Sensor Library"
+arduino-cli lib install ArduinoBLE
 arduino-cli lib install --git-url https://github.com/RAKWireless/RAK13800-W5100S.git#1.0.4
 ```
 

@@ -6,4 +6,5 @@ menu "RAKwireless Modules"
 rsource "rak_cpputest/Kconfig"
 rsource "rak_double_tap/Kconfig"
 rsource "rak_regout0_fix/Kconfig"
+rsource "rak_zephyr_ble/Kconfig"
 endmenu
